@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate structopt;
+#[macro_use]
 extern crate log;
 
 extern crate flexi_logger;
@@ -8,7 +9,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 use flexi_logger::Logger;
 
-mod feedstore;
+mod store;
 
 /// Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 /// This application is an adaption of the rss2imap Python script to Rust.
@@ -74,7 +75,7 @@ fn main() {
                 .start()
                 .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e));
     
-    let mut store = feedstore::FeedStore::load();
+    let mut store = store::Store::load();
     let opt = RRSS2IMAP::from_args();
     match opt {
         RRSS2IMAP::New { email } => store.set_email(email),
