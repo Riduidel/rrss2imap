@@ -1,0 +1,10 @@
+[package]
+name = "rrss2imap"
+version = "0.1.0"
+authors = ["Nicolas Delsaux <nicolas.delsaux@zenika.com>"]
+
+[dependencies]
+structopt = "0.2.10"
+
+[dev-dependencies]
+assert_cli = "0.5.4"
