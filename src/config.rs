@@ -1,3 +1,7 @@
+///
+/// This structure defines the feed-level config.
+/// All elements here may be configured twice : once at feed level, and once at global level.
+/// Obviously, all elements which are not defined at feed level use global configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
     #[serde(skip_serializing_if = "Option::is_none")]

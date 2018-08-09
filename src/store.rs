@@ -12,7 +12,7 @@ use super::config::Config;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
-    config:Config,
+    default:Config,
     feeds:Vec<Feed>
 }
 
@@ -35,7 +35,7 @@ impl Store {
             return store;
         } else {
             Store {
-                config: Config {
+                default: Config {
                     email:None,
                     folder:None
                 },
@@ -52,7 +52,7 @@ impl Store {
 
     /// Set a new value for email and save file (prior to obviously exiting)
     pub fn set_email(&mut self, email:String) {
-        self.config.email = Some(email);
+        self.default.email = Some(email);
         self.save();
     }
 
@@ -97,7 +97,7 @@ impl Store {
 
     pub fn list(&self) {
         let lines:Vec<String> = self.feeds.iter().enumerate()
-            .map(|(i, f)| format!("{} : {}", i, f.to_string(&self.config)))
+            .map(|(i, f)| format!("{} : {}", i, f.to_string(&self.default)))
             .collect()
             ;
         println!("{}", &lines.join("\n"));
