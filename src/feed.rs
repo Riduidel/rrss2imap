@@ -38,4 +38,8 @@ impl Feed {
             }
         }
     }
+
+    pub fn to_string(&self, config:&Config) -> String {
+        return format!("{} {}", self.url, self.config.clone().to_string(config));
+    }
 }

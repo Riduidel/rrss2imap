@@ -97,11 +97,7 @@ impl Store {
 
     pub fn list(&self) {
         let lines:Vec<String> = self.feeds.iter().enumerate()
-            .map(|(i, f)| format!("{} : {} (to: {}) folder: {}", i, 
-                f.url, 
-                "TODO", //f.email.unwrap_or(self.config.email.unwrap()),
-                "TODO"//f.folder.unwrap_or("TODO".to_string())
-                ))
+            .map(|(i, f)| format!("{} : {}", i, f.to_string(&self.config)))
             .collect()
             ;
         println!("{}", &lines.join("\n"));
