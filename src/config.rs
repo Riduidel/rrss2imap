@@ -11,6 +11,13 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn new() -> Config {
+        return Config {
+            email: None,
+            folder: None
+        }
+    }
+
     pub fn to_string(self, default:&Config) -> String {
         return format!("(to: {}) {}",
             self.email.unwrap_or(format!("{} (default)", default.clone().email.unwrap_or("".to_owned()))),
@@ -18,6 +25,8 @@ impl Config {
         );
     }
 
+    /// Used by serde to skip serialization of default config for feeds
+    /// This method check if config is the default one (consisting only into None options)
     pub fn is_none(config:&Config) -> bool {
         return config.email.is_none() && config.folder.is_none();
     }

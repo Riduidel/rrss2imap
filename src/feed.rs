@@ -3,7 +3,7 @@ use super::config::*;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
     pub url:String,
-    #[serde(skip_serializing_if = "Config::is_none")]
+    #[serde(skip_serializing_if = "Config::is_none", default = "Config::new")]
     pub config:Config
 }
 
