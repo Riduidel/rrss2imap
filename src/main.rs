@@ -2,6 +2,9 @@
 extern crate structopt;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
 
 extern crate flexi_logger;
 
@@ -10,6 +13,7 @@ use structopt::StructOpt;
 use flexi_logger::Logger;
 
 mod store;
+mod feed;
 
 /// Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 /// This application is an adaption of the rss2imap Python script to Rust.
@@ -33,12 +37,16 @@ enum RRSS2IMAP {
     /// Adds a new feed given its url
     #[structopt(name = "add")]
     Add {
-        /// url of the feed. web page urls are not yet supported.
-        url: String,
-        /// email address to use to forward feed content
-        email: String,
-        /// destination folder of feed content
-        folder: String
+        /// Parameters used to add the feed. Expected parameters are
+        /// 
+        /// - url of the feed. web page urls are not yet supported. Given as first parameters, mandatory
+        /// 
+        /// - email address to use to forward feed content, optional
+        /// 
+        /// - destination folder of feed content, optional
+        /// 
+        /// Notice parameters have to be given in THIS order.
+        parameters:Vec<String>
     },
     /// List all feeds configured
     #[structopt(name = "list")]
@@ -83,7 +91,7 @@ fn main() {
 
         RRSS2IMAP::List => store.list(),
 
-        RRSS2IMAP::Add { url, email, folder } => store.add(url, email, folder),
+        RRSS2IMAP::Add { parameters } => store.add(parameters),
         RRSS2IMAP::Delete { feed } => store.delete(feed),
 
         RRSS2IMAP::Reset => store.reset(),
