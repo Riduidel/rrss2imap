@@ -17,4 +17,8 @@ impl Config {
             self.folder.unwrap_or(format!("{} (default)", default.clone().folder.unwrap_or("".to_owned())))
         );
     }
+
+    pub fn is_none(config:&Config) -> bool {
+        return config.email.is_none() && config.folder.is_none();
+    }
 }

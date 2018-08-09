@@ -1,8 +1,9 @@
-use super::config::Config;
+use super::config::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
     pub url:String,
+    #[serde(skip_serializing_if = "Config::is_none")]
     pub config:Config
 }
 
