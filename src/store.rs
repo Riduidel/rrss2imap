@@ -8,11 +8,8 @@ use std::io::Read;
 use serde_json;
 
 use super::feed::Feed;
+use super::config::Config;
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Config {
-    email:Option<String>
-}
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
     config:Config,
@@ -40,6 +37,7 @@ impl Store {
             Store {
                 config: Config {
                     email:None,
+                    folder:None
                 },
                 feeds:vec!()
             }

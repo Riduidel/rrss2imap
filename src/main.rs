@@ -14,6 +14,7 @@ use flexi_logger::Logger;
 
 mod store;
 mod feed;
+mod config;
 
 /// Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 /// This application is an adaption of the rss2imap Python script to Rust.

@@ -1,8 +1,9 @@
+use super::config::Config;
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
     pub url:String,
-    pub email:Option<String>,
-    pub folder:Option<String>
+    pub config:Config
 }
 
 impl Feed {
@@ -31,8 +32,10 @@ impl Feed {
         }
         return Feed {
             url: url,
-            email: email,
-            folder: folder
+            config:Config {
+                email: email,
+                folder: folder
+            }
         }
     }
 }
