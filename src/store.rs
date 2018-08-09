@@ -9,6 +9,7 @@ use serde_json;
 
 use super::feed::Feed;
 use super::config::Config;
+use super::import;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
@@ -57,28 +58,25 @@ impl Store {
     }
 
     pub fn export(&self, file:Option<PathBuf>) {
-        error!("exporting content to {:?} not implemented", file);
+        let path_to_write = file.expect("Can't expport file if no file is given");
+        error!("exporting content to {:?} not implemented", path_to_write);
     }
 
     /// Import rss feeds provided as an opml file
     pub fn import(&mut self, file:Option<PathBuf>) {
-        warn!("importing content from {:?}", file);
+        let path_to_read = file.expect("Can't import file if no file is given");
+        warn!("importing content from {:?}", path_to_read);
+        let count = self.feeds.len();
+        import::import(&path_to_read, self);
+        self.save();
+        warn!("imported {} feeds from {:?}", self.feeds.len()-count, path_to_read);
     }
 
     // Add a feed to the feeds list and immediatly save the store
     pub fn add(&mut self, parameters:Vec<String>) {
         info!("adding \"{:?}\"", parameters);
         let to_add = Feed::from(parameters);
-        // We never add the same feed twice. To ensure that, we check that no feed has the same url
-        let tested = self.feeds.clone();
-        let already_existing:Vec<&Feed> = tested.iter()
-            .filter(|f| f.url==to_add.url)
-            .collect();
-        if already_existing.is_empty() {
-            self.feeds.push(to_add);
-        } else {
-            panic!(format!("We already read this feed with the following configuration {:?}", already_existing));
-        }
+        self.add_feed(to_add);
         self.save();
     }
 
@@ -105,5 +103,18 @@ impl Store {
             .collect()
             ;
         println!("{}", &lines.join("\n"));
+    }
+
+    pub fn add_feed(&mut self, to_add:Feed) {
+        // We never add the same feed twice. To ensure that, we check that no feed has the same url
+        let tested = self.feeds.clone();
+        let already_existing:Vec<&Feed> = tested.iter()
+            .filter(|f| f.url==to_add.url)
+            .collect();
+        if already_existing.is_empty() {
+            self.feeds.push(to_add);
+        } else {
+            error!("We already read this feed with the following configuration {:?}", already_existing);
+        }
     }
 }

@@ -10,6 +10,8 @@ extern crate serde_json;
 
 extern crate flexi_logger;
 
+extern crate treexml;
+
 use std::path::PathBuf;
 use structopt::StructOpt;
 use flexi_logger::Logger;
@@ -17,6 +19,7 @@ use flexi_logger::Logger;
 mod store;
 mod feed;
 mod config;
+mod import;
 
 /// Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 /// This application is an adaption of the rss2imap Python script to Rust.

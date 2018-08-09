@@ -12,6 +12,8 @@ structopt = "0.2"
 serde = "1.0.71"
 serde_derive = "1.0.71"
 serde_json = "1.0.24"
+# Used for import/export
+treexml = "0.7"
 
 [dev-dependencies]
 assert_cli = "0.5.4"
