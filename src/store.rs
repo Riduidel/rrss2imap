@@ -57,11 +57,12 @@ impl Store {
     }
 
     pub fn export(&self, file:Option<PathBuf>) {
-        info!("exporting content not implemented");
+        error!("exporting content to {:?} not implemented", file);
     }
 
+    /// Import rss feeds provided as an opml file
     pub fn import(&mut self, file:Option<PathBuf>) {
-        info!("importing content not implemented");
+        warn!("importing content from {:?}", file);
     }
 
     // Add a feed to the feeds list and immediatly save the store
@@ -95,7 +96,7 @@ impl Store {
     }
 
     pub fn run(&mut self) {
-        info!("run not implemented");
+        error!("run not implemented");
     }
 
     pub fn list(&self) {
