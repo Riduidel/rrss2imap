@@ -88,7 +88,10 @@ impl Store {
     }
 
     pub fn reset(&mut self) {
-        info!("reset not implemented");
+        self.feeds.clear();
+        self.default.clear();
+        self.save();
+        info!("store have been cleared to contain only {:?}", self);
     }
 
     pub fn run(&mut self) {

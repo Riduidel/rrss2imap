@@ -30,4 +30,9 @@ impl Config {
     pub fn is_none(config:&Config) -> bool {
         return config.email.is_none() && config.folder.is_none();
     }
+
+    /// Clear all content from this config excepted email address
+    pub fn clear(&mut self) {
+        self.folder = None;
+    }
 }
