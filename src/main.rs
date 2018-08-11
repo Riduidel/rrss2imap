@@ -20,6 +20,7 @@ mod store;
 mod feed;
 mod config;
 mod import;
+mod export;
 
 /// Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 /// This application is an adaption of the rss2imap Python script to Rust.

@@ -1,4 +1,3 @@
-///
 /// This structure defines the feed-level config.
 /// All elements here may be configured twice : once at feed level, and once at global level.
 /// Obviously, all elements which are not defined at feed level use global configuration
@@ -34,5 +33,13 @@ impl Config {
     /// Clear all content from this config excepted email address
     pub fn clear(&mut self) {
         self.folder = None;
+    }
+
+    pub fn get_email(self, default:&Config) -> String {
+        return self.email.unwrap_or(default.clone().email.unwrap_or("".to_owned()));
+    }
+
+    pub fn get_folder(self, default:&Config) -> String {
+        return self.folder.unwrap_or(default.clone().folder.unwrap_or("".to_owned()));
     }
 }

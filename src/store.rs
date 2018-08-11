@@ -10,11 +10,12 @@ use serde_json;
 use super::feed::Feed;
 use super::config::Config;
 use super::import;
+use super::export;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
-    default:Config,
-    feeds:Vec<Feed>
+    pub default:Config,
+    pub feeds:Vec<Feed>
 }
 
 const STORE:&str = "config.json";
@@ -59,7 +60,9 @@ impl Store {
 
     pub fn export(&self, file:Option<PathBuf>) {
         let path_to_write = file.expect("Can't expport file if no file is given");
-        error!("exporting content to {:?} not implemented", path_to_write);
+        warn!("exporting content to {:?}", path_to_write);
+        export::export(&path_to_write, self);
+        warn!("exported feeds to {:?}", path_to_write);
     }
 
     /// Import rss feeds provided as an opml file
