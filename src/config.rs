@@ -4,29 +4,36 @@
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub email:Option<String>,
+    pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub folder:Option<String>
+    pub folder: Option<String>,
 }
 
 impl Config {
     pub fn new() -> Config {
         return Config {
             email: None,
-            folder: None
-        }
+            folder: None,
+        };
     }
 
-    pub fn to_string(self, default:&Config) -> String {
-        return format!("(to: {}) {}",
-            self.email.unwrap_or(format!("{} (default)", default.clone().email.unwrap_or("".to_owned()))),
-            self.folder.unwrap_or(format!("{} (default)", default.clone().folder.unwrap_or("".to_owned())))
+    pub fn to_string(self, default: &Config) -> String {
+        return format!(
+            "(to: {}) {}",
+            self.email.unwrap_or(format!(
+                "{} (default)",
+                default.clone().email.unwrap_or("".to_owned())
+            )),
+            self.folder.unwrap_or(format!(
+                "{} (default)",
+                default.clone().folder.unwrap_or("".to_owned())
+            ))
         );
     }
 
     /// Used by serde to skip serialization of default config for feeds
     /// This method check if config is the default one (consisting only into None options)
-    pub fn is_none(config:&Config) -> bool {
+    pub fn is_none(config: &Config) -> bool {
         return config.email.is_none() && config.folder.is_none();
     }
 
@@ -35,11 +42,15 @@ impl Config {
         self.folder = None;
     }
 
-    pub fn get_email(self, default:&Config) -> String {
-        return self.email.unwrap_or(default.clone().email.unwrap_or("".to_owned()));
+    pub fn get_email(self, default: &Config) -> String {
+        return self
+            .email
+            .unwrap_or(default.clone().email.unwrap_or("".to_owned()));
     }
 
-    pub fn get_folder(self, default:&Config) -> String {
-        return self.folder.unwrap_or(default.clone().folder.unwrap_or("".to_owned()));
+    pub fn get_folder(self, default: &Config) -> String {
+        return self
+            .folder
+            .unwrap_or(default.clone().folder.unwrap_or("".to_owned()));
     }
 }

@@ -12,15 +12,28 @@ extern crate flexi_logger;
 
 extern crate treexml;
 
+extern crate requests;
+
+extern crate feed_rs;
+
+extern crate chrono;
+
+#[macro_use]
+extern crate tera;
+
+#[macro_use]
+extern crate lazy_static;
+
+use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use flexi_logger::Logger;
 
-mod store;
-mod feed;
 mod config;
-mod import;
 mod export;
+mod feed;
+mod import;
+mod store;
+mod settings;
 
 /// Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 /// This application is an adaption of the rss2imap Python script to Rust.
@@ -31,13 +44,11 @@ enum RRSS2IMAP {
     #[structopt(name = "new")]
     New {
         /// email the notifications will be sent to
-        email: String
+        email: String,
     },
     /// Changes email address used in feed file to be the given one
     #[structopt(name = "email")]
-    Email {
-        email: String
-    },
+    Email { email: String },
     /// Run feed parsing and transformation
     #[structopt(name = "run")]
     Run,
@@ -45,15 +56,15 @@ enum RRSS2IMAP {
     #[structopt(name = "add")]
     Add {
         /// Parameters used to add the feed. Expected parameters are
-        /// 
+        ///
         /// - url of the feed. web page urls are not yet supported. Given as first parameters, mandatory
-        /// 
+        ///
         /// - email address to use to forward feed content, optional
-        /// 
+        ///
         /// - destination folder of feed content, optional
-        /// 
+        ///
         /// Notice parameters have to be given in THIS order.
-        parameters:Vec<String>
+        parameters: Vec<String>,
     },
     /// List all feeds configured
     #[structopt(name = "list")]
@@ -65,31 +76,30 @@ enum RRSS2IMAP {
     #[structopt(name = "delete")]
     Delete {
         // index of the feed to delete
-        feed: u32
+        feed: u32,
     },
     /// Export subscriptions as opml file
     #[structopt(name = "export")]
     Export {
         /// Output file, stdout if not present
         #[structopt(parse(from_os_str))]
-        output: Option<PathBuf>
+        output: Option<PathBuf>,
     },
     /// import the given opml file into subscriptions
     #[structopt(name = "import")]
     Import {
         /// Output file, stdout if not present
         #[structopt(parse(from_os_str))]
-        input: Option<PathBuf>
-    }
-
+        input: Option<PathBuf>,
+    },
 }
 
 fn main() {
     // Configure logger
     Logger::with_env()
-                .start()
-                .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e));
-    
+        .start()
+        .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e));
+
     let mut store = store::Store::load();
     let opt = RRSS2IMAP::from_args();
     match opt {
@@ -103,9 +113,11 @@ fn main() {
 
         RRSS2IMAP::Reset => store.reset(),
 
-        RRSS2IMAP::Run => store.run(),
+        RRSS2IMAP::Run => {
+            store.run();
+        }
 
         RRSS2IMAP::Export { output } => store.export(output),
-        RRSS2IMAP::Import { input } => store.import(input)
+        RRSS2IMAP::Import { input } => store.import(input),
     }
-} 
+}
