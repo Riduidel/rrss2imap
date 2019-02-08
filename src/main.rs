@@ -24,6 +24,13 @@ extern crate tera;
 #[macro_use]
 extern crate lazy_static;
 
+extern crate kuchiki;
+
+extern crate imap;
+extern crate native_tls;
+
+extern crate base64;
+
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -34,6 +41,7 @@ mod feed;
 mod import;
 mod store;
 mod settings;
+mod entry;
 
 /// Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 /// This application is an adaption of the rss2imap Python script to Rust.

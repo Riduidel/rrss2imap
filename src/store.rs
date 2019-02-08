@@ -106,7 +106,9 @@ impl Store {
     }
 
     pub fn run(&mut self) {
-        self.feeds = self.feeds.iter().map(|f| f.read(&self.settings, &self.default)).collect::<Vec<Feed>>();
+        // Initialize mail server before processing feeds
+        let mut mail = self.settings.connect();
+        self.feeds = self.feeds.iter().map(|f| f.read(&self.settings, &self.default, &mut mail)).collect::<Vec<Feed>>();
         self.save();
     }
 

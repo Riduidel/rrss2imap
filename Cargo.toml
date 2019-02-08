@@ -20,13 +20,17 @@ requests = "0.0"
 feed-rs = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 # A good html parser to allow generation of valid mail messages
-html5ever = "0.22"
+# kuchiki is in fact a layer over html5ever, which adds easier tree traversal/transformation
+kuchiki = "0.7.2"
 # And an imap connector, obviously
-imap = "0.8"
+imap = "0.10"
+native-tls = "0.2.2"
 # Used to generate html text messages from initial entries
 tera = "0.11"
 # Allows to easily start tera
 lazy_static = "1.1"
+base64 = "0.10.1"
+quoted_printable = "0.4.0"
 
 [dev-dependencies]
 assert_cli = "0.6"

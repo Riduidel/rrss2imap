@@ -8,16 +8,7 @@ use super::config::*;
 
 use super::settings::*;
 
-use tera::Tera;
-use tera::Context;
-
-lazy_static! {
-    static ref TERA:Tera = {
-        let mut tera = compile_templates!("templates/*");
-        tera.autoescape_on(vec![]);
-        tera
-    };
-}
+use super::entry::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
@@ -41,7 +32,7 @@ impl Feed {
     // Convert the parameters vec into a valid feed (if possible)
     pub fn from(parameters: Vec<String>) -> Feed {
         let mut consumed = parameters.clone();
-        let url: String = consumed.pop().unwrap();
+        let url: String = consumed.pop().expect("You must at least define an url to add.");
         let mut email: Option<String> = None;
         let mut folder: Option<String> = None;
         // If there is a second parameter, it can be either email or folder
@@ -78,7 +69,7 @@ impl Feed {
         return format!("{} {}", self.url, self.config.clone().to_string(config));
     }
 
-    pub fn read(&self, settings:&Settings, config:&Config) -> Feed{
+    pub fn read(&self, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
         info!("Reading feed from {}", self.url);
         let response = requests::get(&self.url).unwrap();
         let feed_content_as_text = response.text().unwrap();
@@ -91,7 +82,7 @@ impl Feed {
             feed.entries.iter()
                 .filter(|e| e.last_date()>=self.last_updated)
                 .map(|e| self.process_entry(&feed, e, settings))
-                .for_each(|e| self.write_to_imap(&feed, e, settings, config));
+                .for_each(|e| e.write_to_imap(&self, &feed, settings, config, email));
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
@@ -117,48 +108,7 @@ impl Feed {
         returned.published = entry.published;
         returned.updated = Some(entry.last_date());
         returned.author = entry.clone().author;
-        returned.content = Some(entry.extract_content(settings));
+        returned.content = Some(entry.extract_content(feed, settings));
         return returned;
     }
-
-    fn write_to_imap(&self, feed:&SourceFeed, entry:Entry, settings:&Settings, config:&Config) {
-        info!("Full content is\n{:?}\n\n\n\n\n", entry);
-    }
-}
-
-/// Provides last date for an element
-pub trait Dated {
-    fn last_date(&self)->NaiveDateTime;
-}
-impl Dated for Entry {
-    fn last_date(&self)->NaiveDateTime {
-        return self.updated.unwrap_or(self.published);
-    }
-
-}
-pub trait Extractable {
-    fn get_content(&self) -> String;
-    fn get_title(&self) -> String;
-    fn get_link(&self) -> String;
-    fn extract_content(&self, settings:&Settings) -> String;
-}
-
-impl Extractable for Entry {
-    fn get_content(&self) -> String {
-        return self.clone().content.unwrap_or(self.clone().summary.unwrap());
-    }
-    fn get_title(&self) -> String {
-        return self.clone().title.unwrap();
-    }
-    fn get_link(&self) -> String {
-        return self.clone().id;
-    }
-    fn extract_content(&self, settings:&Settings) -> String {
-        let mut context = Context::new();
-        context.insert("content", &self.get_content());
-        context.insert("link", &self.get_link());
-        context.insert("title", &self.get_title());
-        return TERA.render("message.html", &context).unwrap();
-    }
-
 }

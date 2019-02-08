@@ -42,14 +42,14 @@ impl Config {
         self.folder = None;
     }
 
-    pub fn get_email(self, default: &Config) -> String {
-        return self
+    pub fn get_email(&self, default: &Config) -> String {
+        return self.clone()
             .email
             .unwrap_or(default.clone().email.unwrap_or("".to_owned()));
     }
 
-    pub fn get_folder(self, default: &Config) -> String {
-        return self
+    pub fn get_folder(&self, default: &Config) -> String {
+        return self.clone()
             .folder
             .unwrap_or(default.clone().folder.unwrap_or("".to_owned()));
     }

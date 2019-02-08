@@ -1,0 +1,11 @@
+MIME-Version: 1.0
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Me <me@localhost>
+Subject: {{title}}
+From: {{from}}
+Date: {{date}}
+X-RSS-Feed: {{link}}
+User-Agent: rss2email
+
+{{message_body}}
