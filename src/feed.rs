@@ -81,7 +81,6 @@ impl Feed {
             info!("There should be new entries, parsing HTML content");
             feed.entries.iter()
                 .filter(|e| e.last_date()>=self.last_updated)
-                .map(|e| self.process_entry(&feed, e, settings))
                 .for_each(|e| e.write_to_imap(&self, &feed, settings, config, email));
             return Feed {
                 url: self.url.clone(),
@@ -95,20 +94,5 @@ impl Feed {
                 last_updated: self.last_updated.clone()
             };
         }
-    }
-
-    /// Processing an entry will generate, from the entry, the "correct" HTML fragment :
-    /// a table able to be rendered in mail client and containing the needed informations
-    /// returns a transformed entry which can be directly serialized into an IMAP message
-    fn process_entry(&self, feed:&SourceFeed, entry:&Entry, settings:&Settings) -> Entry{
-        info!("Processing entry {} written at {}", entry.id, entry.last_date());
-        let mut returned = Entry::new();
-        returned.id = entry.clone().id;
-        returned.title = Some(entry.clone().title.unwrap_or(feed.clone().title.unwrap()));
-        returned.published = entry.published;
-        returned.updated = Some(entry.last_date());
-        returned.author = entry.clone().author;
-        returned.content = Some(entry.extract_content(feed, settings));
-        return returned;
     }
 }

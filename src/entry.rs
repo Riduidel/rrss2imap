@@ -78,7 +78,8 @@ impl Extractable for Entry {
 
     fn write_to_imap(&self, feed:&Feed, source:&SourceFeed, settings:&Settings, config:&Config, email:&mut Imap) {
         let folder = feed.config.get_folder(config);
-        match email.append(&folder, self.extract_content(source, settings)) {
+        let message = self.extract_content(source, settings);
+        match email.append(&folder, message) {
             Ok(_) => debug!("Successfully written {}", self.get_title(settings)),
             Err(e) => error!("{}\nUnable to select mailbox {}. Entry titled {} won't be written", 
                     e, &folder, self.get_title(settings))
