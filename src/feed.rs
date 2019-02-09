@@ -1,14 +1,11 @@
-use requests;
-use feed_rs::{parser,Entry};
-use feed_rs::Feed as SourceFeed;
-use chrono::NaiveDateTime;
-use chrono::Utc;
+use rss::{Channel, Item};
+use chrono::{NaiveDateTime, DateTime};
 
 use super::config::*;
 
 use super::settings::*;
 
-use super::entry::*;
+use super::item::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
@@ -71,17 +68,14 @@ impl Feed {
 
     pub fn read(&self, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
         info!("Reading feed from {}", self.url);
-        let response = requests::get(&self.url).unwrap();
-        let feed_content_as_text = response.text().unwrap();
-        // Now parse it as XML, because it is XML
-        let feed = parser::parse(&mut feed_content_as_text.as_bytes()).unwrap();
-        let feed_date = feed.last_updated.unwrap_or(Utc::now().naive_utc());
+        let feed = Channel::from_url(&self.url).unwrap();
+        let feed_date_text = feed.pub_date().unwrap_or(feed.last_build_date().unwrap());
+        let feed_date = DateTime::parse_from_rfc2822(feed_date_text).unwrap().naive_utc();
         info!("Feed date is {} while previous read date is {}", feed_date, self.last_updated);
         if feed_date>=self.last_updated {
             info!("There should be new entries, parsing HTML content");
-            feed.entries.iter()
+            feed.items().iter()
                 .filter(|e| e.last_date()>=self.last_updated)
-                .map(|e| self.process_entry(&feed, e, settings))
                 .for_each(|e| e.write_to_imap(&self, &feed, settings, config, email));
             return Feed {
                 url: self.url.clone(),
@@ -95,20 +89,5 @@ impl Feed {
                 last_updated: self.last_updated.clone()
             };
         }
-    }
-
-    /// Processing an entry will generate, from the entry, the "correct" HTML fragment :
-    /// a table able to be rendered in mail client and containing the needed informations
-    /// returns a transformed entry which can be directly serialized into an IMAP message
-    fn process_entry(&self, feed:&SourceFeed, entry:&Entry, settings:&Settings) -> Entry{
-        info!("Processing entry {} written at {}", entry.id, entry.last_date());
-        let mut returned = Entry::new();
-        returned.id = entry.clone().id;
-        returned.title = Some(entry.clone().title.unwrap_or(feed.clone().title.unwrap()));
-        returned.published = entry.published;
-        returned.updated = Some(entry.last_date());
-        returned.author = entry.clone().author;
-        returned.content = Some(entry.extract_content(feed, settings));
-        return returned;
     }
 }

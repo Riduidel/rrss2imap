@@ -12,9 +12,7 @@ extern crate flexi_logger;
 
 extern crate treexml;
 
-extern crate requests;
-
-extern crate feed_rs;
+extern crate rss;
 
 extern crate chrono;
 
@@ -41,7 +39,7 @@ mod feed;
 mod import;
 mod store;
 mod settings;
-mod entry;
+mod item;
 
 /// Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 /// This application is an adaption of the rss2imap Python script to Rust.

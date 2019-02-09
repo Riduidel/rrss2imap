@@ -4,8 +4,10 @@ use super::settings::*;
 use super::feed::*;
 use super::config::*;
 
-use feed_rs::Entry;
-use feed_rs::Feed as SourceFeed;
+use rss::Item;
+use rss::Channel as SourceFeed;
+
+use chrono::DateTime;
 
 use tera::Tera;
 use tera::Context;
@@ -27,9 +29,9 @@ lazy_static! {
 pub trait Dated {
     fn last_date(&self)->NaiveDateTime;
 }
-impl Dated for Entry {
+impl Dated for Item {
     fn last_date(&self)->NaiveDateTime {
-        return self.updated.unwrap_or(self.published);
+        return DateTime::parse_from_rfc2822(self.pub_date().unwrap()).unwrap().naive_utc();
     }
 
 }
@@ -38,7 +40,7 @@ pub trait Extractable {
     fn get_title(&self, settings:&Settings) -> String;
     fn get_link(&self, settings:&Settings) -> String;
     fn get_author(&self, feed:&SourceFeed, settings:&Settings) -> String;
-    /// Makes a valid HTML file out of the given entry.
+    /// Makes a valid HTML file out of the given Item.
     /// This method provides all the transformation that should happen
     fn extract_content(&self, feed:&SourceFeed, settings:&Settings) -> String;
 
@@ -46,42 +48,52 @@ pub trait Extractable {
 
 }
 
-impl Extractable for Entry {
+impl Extractable for Item {
     fn get_content(&self, settings:&Settings) -> String {
-        let text = self.clone().content.unwrap_or(self.clone().summary.unwrap_or("".to_owned()));
+        let text = self.content().unwrap_or(self.description().unwrap_or(""));
         // First step is to fix HTML, so load it using html5ever 
         // (because there is no better html parser than a real browser one)
         // TODO implement image inlining
-        return text;
+        return text.to_owned();
     }
     fn get_title(&self, _settings:&Settings) -> String {
-        return self.clone().title.unwrap();
+        return self.clone().title().unwrap().to_owned();
     }
     fn get_link(&self, _settings:&Settings) -> String {
-        return self.clone().id;
+        return self.clone().link().unwrap().to_owned();
     }
     fn get_author(&self, feed:&SourceFeed, _settings:&Settings) -> String {
-        return self.clone().author.unwrap_or(feed.clone().title.unwrap_or("no author found".to_owned()));
+        return self.clone().author().unwrap_or(feed.clone().title()).to_owned();
     }
     fn extract_content(&self, feed:&SourceFeed, settings:&Settings) -> String {
-        info!("calling extract_content for {}", self.get_link(settings));
-        let mut context = Context::new();
-        context.insert("feed_entry", &self.get_content(settings));
-        context.insert("link", &self.get_link(settings));
-        context.insert("title", &self.get_title(settings));
-        context.insert("from", &self.get_author(feed, settings));
-        context.insert("date", &self.last_date().format("%a, %d %b %Y %H:%M:%S -0000").to_string());
-        let body = TERA.render("message.html", &context).unwrap();
-        context.insert("message_body", &body);
-        return TERA.render("message.enveloppe", &context).unwrap();
+        debug!("calling extract_content for {}", self.get_link(settings));
+        return TERA.render("message.html", &build_context(self, feed, settings)).unwrap();
     }
 
     fn write_to_imap(&self, feed:&Feed, source:&SourceFeed, settings:&Settings, config:&Config, email:&mut Imap) {
         let folder = feed.config.get_folder(config);
-        match email.append(&folder, self.extract_content(source, settings)) {
+        let content = build_message(self, source, settings);
+        match email.append(&folder, content) {
             Ok(_) => debug!("Successfully written {}", self.get_title(settings)),
-            Err(e) => error!("{}\nUnable to select mailbox {}. Entry titled {} won't be written", 
+            Err(e) => error!("{}\nUnable to select mailbox {}. Item titled {} won't be written", 
                     e, &folder, self.get_title(settings))
         }
     }
+}
+
+fn build_context(entry:&Item, feed:&SourceFeed, settings:&Settings)->Context {
+    let mut context = Context::new();
+    context.insert("feed_entry", &entry.get_content(settings));
+    context.insert("link", &entry.get_link(settings));
+    context.insert("title", &entry.get_title(settings));
+    context.insert("from", &entry.get_author(feed, settings));
+    context.insert("date", &entry.last_date().format("%a, %d %b %Y %H:%M:%S -0000").to_string());
+    return context;
+}
+
+fn build_message(entry:&Item, feed:&SourceFeed, settings:&Settings)->String {
+    debug!("calling build_message for {}", entry.get_link(settings));
+    let mut context = build_context(entry, feed, settings);
+    context.insert("message_body", &entry.extract_content(feed, settings));
+    return TERA.render("message.enveloppe", &context).unwrap();
 }
