@@ -1,11 +1,12 @@
-use rss::{Channel, Item};
 use chrono::{NaiveDateTime, DateTime};
 
 use super::config::*;
 
 use super::settings::*;
-
-use super::item::*;
+use super::extractable::*;
+use super::syndication;
+use rss::Channel;
+use atom_syndication::Feed as AtomFeed;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
@@ -68,9 +69,29 @@ impl Feed {
 
     pub fn read(&self, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
         info!("Reading feed from {}", self.url);
-        let feed = Channel::from_url(&self.url).unwrap();
+        let response = requests::get(&self.url).unwrap();
+        if response.ok() {
+            let text = response.text().unwrap();
+            let parsed = text.parse::<syndication::Feed>().unwrap();
+            match parsed {
+                syndication::Feed::Atom(atom_feed) => return self.read_atom(atom_feed, settings, config, email),
+                syndication::Feed::RSS(rss_feed) => return self.read_rss(rss_feed, settings, config, email)
+            }
+        } else {
+            error!("HTTP code is {} when trying to get feed {}", response.status_code(), &self.url);
+            return self.clone();
+        }
+    }
+
+    fn read_atom(&self, feed:AtomFeed, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
+        info!("reading ATOM feed {}", &self.url);
+        return self.clone();
+    }
+
+    fn read_rss(&self, feed:Channel, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
+        info!("reading RSS feed {}", &self.url);
         let feed_date_text = feed.pub_date().unwrap_or(feed.last_build_date().unwrap());
-        let feed_date = DateTime::parse_from_rfc2822(feed_date_text).unwrap().naive_utc();
+        let feed_date = DateTime::parse_from_rfc2822(&feed_date_text).unwrap().naive_utc();
         info!("Feed date is {} while previous read date is {}", feed_date, self.last_updated);
         if feed_date>=self.last_updated {
             info!("There should be new entries, parsing HTML content");
@@ -82,12 +103,7 @@ impl Feed {
                 config: self.config.clone(),
                 last_updated: if settings.do_not_save { self.last_updated.clone() } else { feed_date }
             };
-        } else {
-            return Feed {
-                url: self.url.clone(),
-                config: self.config.clone(),
-                last_updated: self.last_updated.clone()
-            };
-        }
+        }        
+        return self.clone();
     }
 }

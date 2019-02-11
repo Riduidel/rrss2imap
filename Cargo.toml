@@ -15,8 +15,8 @@ serde_json = "1.0"
 # Used for import/export TODO replace by quick-xml
 treexml = "0.7"
 # Used to get feed entries (and images, when it will be possible)
-# Used to parse Atom/RSS feed
-rss = { version = "1.6.1", features = ["from_url"] }
+atom_syndication = "0.6.0"
+rss = "1.6.1"
 chrono = { version = "0.4", features = ["serde"] }
 # A good html parser to allow generation of valid mail messages
 # kuchiki is in fact a layer over html5ever, which adds easier tree traversal/transformation
@@ -30,6 +30,7 @@ tera = "0.11"
 lazy_static = "1.2.0"
 base64 = "0.10.1"
 quoted_printable = "0.4.0"
+requests = "0.0.30"
 
 [dev-dependencies]
 assert_cli = "0.6"
