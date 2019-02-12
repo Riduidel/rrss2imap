@@ -36,7 +36,9 @@
 	<body style="word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-line-break: after-white-space;">
 	    <div id="entry">
 	        <div id="body">{{feed_entry}}</div>
-	        <p class="footer">URL: <a href="{{link}}">{{link}}</a></p>
+{% for l in links -%}
+	        <p class="footer">URL: <a href="{{l}}">{{l}}</a></p>
+{%- endfor %}
 	    </div>
     </body>
 </html>

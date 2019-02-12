@@ -1,14 +1,12 @@
-use requests;
-use feed_rs::{parser,Entry};
-use feed_rs::Feed as SourceFeed;
-use chrono::NaiveDateTime;
-use chrono::Utc;
+use chrono::{NaiveDateTime, DateTime, Utc};
 
 use super::config::*;
 
 use super::settings::*;
-
-use super::entry::*;
+use super::extractable::*;
+use super::syndication;
+use rss::Channel;
+use atom_syndication::Feed as AtomFeed;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
@@ -72,14 +70,27 @@ impl Feed {
     pub fn read(&self, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
         info!("Reading feed from {}", self.url);
         let response = requests::get(&self.url).unwrap();
-        let feed_content_as_text = response.text().unwrap();
-        // Now parse it as XML, because it is XML
-        let feed = parser::parse(&mut feed_content_as_text.as_bytes()).unwrap();
-        let feed_date = feed.last_updated.unwrap_or(Utc::now().naive_utc());
+        if response.ok() {
+            let text = response.text().unwrap();
+            let parsed = text.parse::<syndication::Feed>().unwrap();
+            match parsed {
+                syndication::Feed::Atom(atom_feed) => return self.read_atom(atom_feed, settings, config, email),
+                syndication::Feed::RSS(rss_feed) => return self.read_rss(rss_feed, settings, config, email)
+            }
+        } else {
+            error!("HTTP code is {} when trying to get feed {}", response.status_code(), &self.url);
+            return self.clone();
+        }
+    }
+
+    fn read_atom(&self, feed:AtomFeed, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
+        info!("reading ATOM feed {}", &self.url);
+        let feed_date_text = feed.updated();
+        let feed_date = feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc();
         info!("Feed date is {} while previous read date is {}", feed_date, self.last_updated);
         if feed_date>=self.last_updated {
             info!("There should be new entries, parsing HTML content");
-            feed.entries.iter()
+            feed.entries().iter()
                 .filter(|e| e.last_date()>=self.last_updated)
                 .for_each(|e| e.write_to_imap(&self, &feed, settings, config, email));
             return Feed {
@@ -87,12 +98,26 @@ impl Feed {
                 config: self.config.clone(),
                 last_updated: if settings.do_not_save { self.last_updated.clone() } else { feed_date }
             };
-        } else {
+        }        
+        return self.clone();
+    }
+
+    fn read_rss(&self, feed:Channel, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
+        info!("reading RSS feed {}", &self.url);
+        let feed_date_text = feed.pub_date().unwrap_or(feed.last_build_date().unwrap());
+        let feed_date = DateTime::parse_from_rfc2822(&feed_date_text).unwrap().naive_utc();
+        info!("Feed date is {} while previous read date is {}", feed_date, self.last_updated);
+        if feed_date>=self.last_updated {
+            info!("There should be new entries, parsing HTML content");
+            feed.items().iter()
+                .filter(|e| e.last_date()>=self.last_updated)
+                .for_each(|e| e.write_to_imap(&self, &feed, settings, config, email));
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
-                last_updated: self.last_updated.clone()
+                last_updated: if settings.do_not_save { self.last_updated.clone() } else { feed_date }
             };
-        }
+        }        
+        return self.clone();
     }
 }

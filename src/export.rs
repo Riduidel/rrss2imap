@@ -4,9 +4,8 @@ use std::fs;
 
 use std::collections::HashMap;
 
-use super::config::Config;
-use super::feed::Feed;
 use super::store::Store;
+use super::feed::Feed;
 
 use treexml::*;
 
