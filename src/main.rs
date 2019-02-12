@@ -30,6 +30,8 @@ extern crate requests;
 extern crate rss;
 extern crate atom_syndication;
 
+extern crate xhtmlchardet;
+
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -39,6 +41,7 @@ mod export;
 mod feed;
 mod extractable;
 mod item;
+mod entry;
 mod import;
 mod store;
 mod settings;

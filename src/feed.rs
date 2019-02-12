@@ -1,4 +1,4 @@
-use chrono::{NaiveDateTime, DateTime};
+use chrono::{NaiveDateTime, DateTime, Utc};
 
 use super::config::*;
 
@@ -85,6 +85,20 @@ impl Feed {
 
     fn read_atom(&self, feed:AtomFeed, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
         info!("reading ATOM feed {}", &self.url);
+        let feed_date_text = feed.updated();
+        let feed_date = feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc();
+        info!("Feed date is {} while previous read date is {}", feed_date, self.last_updated);
+        if feed_date>=self.last_updated {
+            info!("There should be new entries, parsing HTML content");
+            feed.entries().iter()
+                .filter(|e| e.last_date()>=self.last_updated)
+                .for_each(|e| e.write_to_imap(&self, &feed, settings, config, email));
+            return Feed {
+                url: self.url.clone(),
+                config: self.config.clone(),
+                last_updated: if settings.do_not_save { self.last_updated.clone() } else { feed_date }
+            };
+        }        
         return self.clone();
     }
 
