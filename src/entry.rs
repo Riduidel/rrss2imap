@@ -29,6 +29,9 @@ impl Extractable<SourceFeed> for Entry {
     fn get_title(&self, _settings:&Settings) -> String {
         return self.clone().title().to_owned();
     }
+    fn get_id(&self, _settings:&Settings) -> String {
+        return self.clone().id().to_owned();
+    }
     fn get_links(&self, _settings:&Settings) -> Vec<String> {
         return self.clone().links().into_iter()
             .map(|l| l.href().to_owned())

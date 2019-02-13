@@ -26,6 +26,12 @@ impl Extractable<SourceFeed> for Item {
     fn get_title(&self, _settings:&Settings) -> String {
         return self.clone().title().unwrap().to_owned();
     }
+    fn get_id(&self, _settings:&Settings) -> String {
+        return match self.guid() {
+            Some(g) => g.value().to_owned(),
+            _ => "no id".to_owned()
+        };
+    }
     fn get_links(&self, _settings:&Settings) -> Vec<String> {
         return match self.link() {
             Some(l) => vec![l.to_owned()],

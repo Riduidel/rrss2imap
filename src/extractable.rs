@@ -22,6 +22,7 @@ pub trait Dated {
 }
 
 pub trait Extractable<SourceFeed> : Dated {
+    fn get_id(&self, settings:&Settings) -> String;
     fn get_content(&self, settings:&Settings) -> String;
     fn get_title(&self, settings:&Settings) -> String;
     fn get_links(&self, settings:&Settings) -> Vec<String>;
@@ -56,6 +57,7 @@ pub trait Extractable<SourceFeed> : Dated {
         let mut context = Context::new();
         context.insert("feed_entry", &self.get_content(settings));
         context.insert("links", &self.get_links(settings));
+        context.insert("id", &self.get_id(settings));
         context.insert("title", &self.get_title(settings));
         context.insert("from", &self.get_authors(feed, settings));
         context.insert("date", &self.last_date().format("%a, %d %b %Y %H:%M:%S -0000").to_string());
