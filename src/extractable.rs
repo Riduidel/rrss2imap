@@ -28,9 +28,8 @@ pub trait Extractable<SourceFeed> : Dated {
     fn get_links(&self, settings:&Settings) -> Vec<String>;
     fn get_authors(&self, feed:&SourceFeed, settings:&Settings) -> Vec<String>;
 
-    fn get_charset(&self, settings:&Settings) -> String {
-        let text = self.get_content(settings);
-        let mut text_cursor = Cursor::new(text.into_bytes());
+    fn get_charset(&self, text:&String, settings:&Settings) -> String {
+        let mut text_cursor = Cursor::new(text.clone().into_bytes());
         let detected_charsets = xhtmlchardet::detect(&mut text_cursor, None);
         match detected_charsets {
             Ok(charsets) => (&charsets[0]).to_owned(),
@@ -66,8 +65,9 @@ pub trait Extractable<SourceFeed> : Dated {
 
     fn build_message(&self, feed:&SourceFeed, settings:&Settings)->String {
         let mut context = self.build_context(feed, settings);
-        context.insert("message_body", &self.extract_content(feed, settings));
-        context.insert("charset", &self.get_charset(settings));
+        let content = self.extract_content(feed, settings);
+        context.insert("message_body", &base64::encode(&content));
+        context.insert("charset", &self.get_charset(&content, settings));
         return TERA.render("message.enveloppe", &context).unwrap();
     }
 }

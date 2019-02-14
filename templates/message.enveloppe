@@ -1,6 +1,6 @@
 MIME-Version: 1.0
 User-Agent: rss2email
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: base64
 To: Me <me@localhost>
 Subject: {{title}}
 Date: {{date}}
