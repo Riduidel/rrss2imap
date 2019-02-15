@@ -11,22 +11,22 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Config {
-        return Config {
+        Config {
             email: None,
             folder: None,
-        };
+        }
     }
 
     pub fn to_string(self, default: &Config) -> String {
         return format!(
             "(to: {}) {}",
-            self.email.unwrap_or(format!(
+            self.email.unwrap_or_else(|| format!(
                 "{} (default)",
-                default.clone().email.unwrap_or("".to_owned())
+                default.clone().email.unwrap_or_else(|| "".to_owned())
             )),
-            self.folder.unwrap_or(format!(
+            self.folder.unwrap_or_else(|| format!(
                 "{} (default)",
-                default.clone().folder.unwrap_or("".to_owned())
+                default.clone().folder.unwrap_or_else(|| "".to_owned())
             ))
         );
     }
@@ -34,7 +34,7 @@ impl Config {
     /// Used by serde to skip serialization of default config for feeds
     /// This method check if config is the default one (consisting only into None options)
     pub fn is_none(config: &Config) -> bool {
-        return config.email.is_none() && config.folder.is_none();
+        config.email.is_none() && config.folder.is_none()
     }
 
     /// Clear all content from this config excepted email address
@@ -43,14 +43,14 @@ impl Config {
     }
 
     pub fn get_email(&self, default: &Config) -> String {
-        return self.clone()
+        self.clone()
             .email
-            .unwrap_or(default.clone().email.unwrap_or("".to_owned()));
+            .unwrap_or_else(|| default.clone().email.unwrap_or_else(|| "".to_owned()))
     }
 
     pub fn get_folder(&self, default: &Config) -> String {
-        return self.clone()
+        self.clone()
             .folder
-            .unwrap_or(default.clone().folder.unwrap_or("".to_owned()));
+            .unwrap_or_else(|| default.clone().folder.unwrap_or_else(|| "".to_owned()))
     }
 }

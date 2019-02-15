@@ -24,9 +24,9 @@ impl FromStr for Feed {
 
 impl ToString for Feed {
     fn to_string(&self) -> String {
-        match self {
-            &Feed::Atom(ref atom_feed) => atom_feed.to_string(),
-            &Feed::RSS(ref rss_channel) => rss_channel.to_string(),
+        match *self {
+            Feed::Atom(ref atom_feed) => atom_feed.to_string(),
+            Feed::RSS(ref rss_channel) => rss_channel.to_string(),
         }
     }
 }

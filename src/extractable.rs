@@ -28,7 +28,7 @@ pub trait Extractable<SourceFeed> : Dated {
     fn get_links(&self, settings:&Settings) -> Vec<String>;
     fn get_authors(&self, feed:&SourceFeed, settings:&Settings) -> Vec<String>;
 
-    fn get_charset(&self, text:&String, settings:&Settings) -> String {
+    fn get_charset(&self, text:&String, _settings:&Settings) -> String {
         let mut text_cursor = Cursor::new(text.clone().into_bytes());
         let detected_charsets = xhtmlchardet::detect(&mut text_cursor, None);
         match detected_charsets {
@@ -40,7 +40,7 @@ pub trait Extractable<SourceFeed> : Dated {
     /// Makes a valid HTML file out of the given Item.
     /// This method provides all the transformation that should happen
     fn extract_content(&self, feed:&SourceFeed, settings:&Settings) -> String {
-        return TERA.render("message.html", &self.build_context(feed, settings)).unwrap();
+        TERA.render("message.html", &self.build_context(feed, settings)).unwrap()
     }
 
     fn write_to_imap(&self, feed:&Feed, source:&SourceFeed, settings:&Settings, config:&Config, email:&mut Imap) {
@@ -60,7 +60,7 @@ pub trait Extractable<SourceFeed> : Dated {
         context.insert("title", &self.get_title(settings));
         context.insert("from", &self.get_authors(feed, settings));
         context.insert("date", &self.last_date().format("%a, %d %b %Y %H:%M:%S -0000").to_string());
-        return context;
+        context
     }
 
     fn build_message(&self, feed:&SourceFeed, settings:&Settings)->String {
@@ -68,7 +68,7 @@ pub trait Extractable<SourceFeed> : Dated {
         let content = self.extract_content(feed, settings);
         context.insert("message_body", &base64::encode(&content));
         context.insert("charset", &self.get_charset(&content, settings));
-        return TERA.render("message.enveloppe", &context).unwrap();
+        TERA.render("message.enveloppe", &context).unwrap()
     }
 }
 

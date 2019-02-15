@@ -20,11 +20,11 @@ pub struct Feed {
 impl Feed {
     /// Checks if feed has been read at least once.
     pub fn is_never_read(feed: &Feed)->bool {
-        return feed.last_updated<=Feed::at_epoch();
+        feed.last_updated<=Feed::at_epoch()
     }
     /// Creates a new naivedatetime with a default value (which is, to my mind) a sensible default for computers
     pub fn at_epoch() -> NaiveDateTime {
-        return NaiveDateTime::from_timestamp(0, 0);
+        NaiveDateTime::from_timestamp(0, 0)
     }
 
     // Convert the parameters vec into a valid feed (if possible)
@@ -37,7 +37,7 @@ impl Feed {
         if !consumed.is_empty() {
             let second = consumed.pop().unwrap();
             // If second parameters contains an @, I suppose it is an email address
-            if second.contains("@") {
+            if second.contains('@') {
                 debug!(
                     "Second add parameter {} is considered an email address",
                     second
@@ -53,14 +53,14 @@ impl Feed {
         if !consumed.is_empty() && folder == None {
             folder = Some(consumed.pop().unwrap());
         }
-        return Feed {
-            url: url,
+        Feed {
+            url,
             config: Config {
-                email: email,
-                folder: folder,
+                email,
+                folder,
             },
             last_updated: Feed::at_epoch()
-        };
+        }
     }
 
     pub fn to_string(&self, config: &Config) -> String {
@@ -74,12 +74,12 @@ impl Feed {
             let text = response.text().unwrap();
             let parsed = text.parse::<syndication::Feed>().unwrap();
             match parsed {
-                syndication::Feed::Atom(atom_feed) => return self.read_atom(atom_feed, settings, config, email),
-                syndication::Feed::RSS(rss_feed) => return self.read_rss(rss_feed, settings, config, email)
+                syndication::Feed::Atom(atom_feed) => self.read_atom(atom_feed, settings, config, email),
+                syndication::Feed::RSS(rss_feed) => self.read_rss(rss_feed, settings, config, email)
             }
         } else {
             error!("HTTP code is {} when trying to get feed {}", response.status_code(), &self.url);
-            return self.clone();
+            self.clone()
         }
     }
 
@@ -96,15 +96,15 @@ impl Feed {
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
-                last_updated: if settings.do_not_save { self.last_updated.clone() } else { feed_date }
+                last_updated: if settings.do_not_save { self.last_updated } else { feed_date }
             };
         }        
-        return self.clone();
+        self.clone()
     }
 
     fn read_rss(&self, feed:Channel, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
         info!("reading RSS feed {}", &self.url);
-        let feed_date_text = feed.pub_date().unwrap_or(feed.last_build_date().unwrap());
+        let feed_date_text = feed.pub_date().unwrap_or_else(|| feed.last_build_date().unwrap());
         let feed_date = DateTime::parse_from_rfc2822(&feed_date_text).unwrap().naive_utc();
         info!("Feed date is {} while previous read date is {}", feed_date, self.last_updated);
         if feed_date>=self.last_updated {
@@ -115,9 +115,9 @@ impl Feed {
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
-                last_updated: if settings.do_not_save { self.last_updated.clone() } else { feed_date }
+                last_updated: if settings.do_not_save { self.last_updated } else { feed_date }
             };
         }        
-        return self.clone();
+        self.clone()
     }
 }

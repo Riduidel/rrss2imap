@@ -17,7 +17,7 @@ pub fn export(to_file: &PathBuf, to_store: &Store) {
 }
 
 fn group_feeds(to_store: &Store) -> HashMap<String, Vec<Feed>> {
-    return to_store.feeds.iter().fold(HashMap::new(), |mut map, feed| {
+    to_store.feeds.iter().fold(HashMap::new(), |mut map, feed| {
         let feed = feed.clone();
         let folder = feed.clone().config.get_folder(&to_store.default);
         if !map.contains_key(&folder) {
@@ -28,7 +28,7 @@ fn group_feeds(to_store: &Store) -> HashMap<String, Vec<Feed>> {
         map.insert(folder.clone(), updated);
         // Return value of closure (which is *not* a return statement ;-)
         map
-    });
+    })
 }
 
 fn write(to_file: &PathBuf, to_store: HashMap<String, Vec<Feed>>) {
@@ -72,5 +72,5 @@ fn write(to_file: &PathBuf, to_store: HashMap<String, Vec<Feed>>) {
     let mut document = Document::new();
     document.root = Some(root);
     fs::write(to_file, format!("{}", document))
-        .expect(&format!("Unable to write file {:?}", to_file));
+        .unwrap_or_else(|_| panic!("Unable to write file {:?}", to_file));
 }

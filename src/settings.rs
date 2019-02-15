@@ -1,5 +1,4 @@
 use imap::Session;
-use imap::types::Mailbox;
 use imap::error::Result;
 
 /// Secured connection or not ?
@@ -29,13 +28,6 @@ pub enum Imap {
 }
 
 impl Imap {
-    pub fn select<S: AsRef<str>>(&mut self, mailbox_name: S) -> Result<Mailbox> {
-        match self {
-            Imap::Secured(ref mut session) => session.select(mailbox_name),
-            Imap::Insecured(ref mut session) => session.select(mailbox_name),
-        }
-    }
-
     pub fn append<S: AsRef<str>, B: AsRef<[u8]>>(&mut self, mailbox: S, content: B) -> Result<()> {
         match self {
             Imap::Secured(ref mut session) => session.append(mailbox, content),
@@ -49,12 +41,12 @@ impl Email {
         Secure::Yes(993)
     }
     pub fn default() -> Email {
-        return Email {
+        Email {
             server: "Set your email server address here".to_owned(),
             user: "Set your imap server user name (it may be your email address or not)".to_owned(),
             password: "Set your imap server password (yup, in clear, this is very bad)".to_owned(),
             secure: Secure::Yes(993),
-        };
+        }
     }
 
     pub fn start(&self) -> Imap {
@@ -68,13 +60,13 @@ impl Email {
         // we pass in the domain twice to check that the server's TLS
         // certificate is valid for the domain we're connecting to.
         let client = imap::connect_insecure((self.server.as_str(), port))
-            .expect(&format!("Couldn't connect to {}:{}", self.server, port));
+            .unwrap_or_else(|_| panic!("Couldn't connect to {}:{}", self.server, port));
 
         // the client we have here is unauthenticated.
         // to do anything useful with the e-mails, we need to log in
         let imap_session = client
             .login(&self.user, &self.password)
-            .expect(&format!("Couldn't isnecurely connect to {}:{} for login {}", self.server, port, self.user));
+            .unwrap_or_else(|_| panic!("Couldn't isnecurely connect to {}:{} for login {}", self.server, port, self.user));
         
         info!("Successfully connected to INSECURE imap server {}", self.server);
         Imap::Insecured(imap_session)
@@ -87,13 +79,13 @@ impl Email {
         // we pass in the domain twice to check that the server's TLS
         // certificate is valid for the domain we're connecting to.
         let client = imap::connect((self.server.as_str(), port), &self.server, &tls)
-            .expect(&format!("Couldn't connect to {}:{}", self.server, port));
+            .unwrap_or_else(|_| panic!("Couldn't connect to {}:{}", self.server, port));
 
         // the client we have here is unauthenticated.
         // to do anything useful with the e-mails, we need to log in
         let imap_session = client
             .login(&self.user, &self.password)
-            .expect(&format!("Couldn't securely connect to {}:{} for login {}", self.server, port, self.user));
+            .unwrap_or_else(|_| panic!("Couldn't securely connect to {}:{} for login {}", self.server, port, self.user));
         
         info!("Successfully connected to SECURE imap server {}", self.server);
         Imap::Secured(imap_session)
@@ -119,25 +111,25 @@ pub struct Settings {
 
 impl Settings {
     pub fn is_false(value: &bool) -> bool {
-        return !value;
+        !value
     }
     pub fn default_false() -> bool {
-        return false;
+        false
     }
 
     pub fn is_true(value: &bool) -> bool {
-        return !!value;
+        !!value
     }
     pub fn default_true() -> bool {
-        return true;
+        true
     }
 
     pub fn default() -> Settings {
-        return Settings {
+        Settings {
             do_not_save: false,
             inline_image_as_data: true,
             email: Email::default(),
-        };
+        }
     }
 
     pub fn connect(&self) -> Imap {

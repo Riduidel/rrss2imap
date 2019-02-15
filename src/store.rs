@@ -30,15 +30,15 @@ impl Store {
         let path = Path::new(STORE);
         if path.exists() {
             // First read the file
-            let mut file = File::open(STORE).expect(&format!("Unable to open file {}", STORE));
+            let mut file = File::open(STORE).unwrap_or_else(|_| panic!("Unable to open file {}", STORE));
             let mut contents = String::new();
             file.read_to_string(&mut contents)
-                .expect(&format!("Unable to read file {}", STORE));
+                .unwrap_or_else(|_| panic!("Unable to read file {}", STORE));
             // Then deserialize its content
             let store: Store =
                 serde_json::from_str(&contents).expect("Can't serialize Store to JSON");
             // And return it
-            return store;
+            store
         } else {
             Store {
                 settings: Settings::default(),
@@ -54,7 +54,7 @@ impl Store {
     /// Save all informations in the store file
     fn save(&self) {
         let serialized = serde_json::to_string_pretty(self).expect("Can't serialize Store to JSON");
-        fs::write(STORE, serialized).expect(&format!("Unable to write file {}", STORE));
+        fs::write(STORE, serialized).unwrap_or_else(|_| panic!("Unable to write file {}", STORE));
     }
 
     /// Set a new value for email and save file (prior to obviously exiting)
