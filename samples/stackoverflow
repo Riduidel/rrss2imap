@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:creativeCommons="http://backend.userland.com/creativeCommonsRssModule" xmlns:re="http://purl.org/atompub/rank/1.0">
+    <title type="text">Why can&#39;t `cargo build` compile structopt-derive in VS Code? - Stack Overflow</title>
+    <link rel="self" href="https://stackoverflow.com/feeds/question/51744103" type="application/atom+xml" />
+    <link rel="alternate" href="https://stackoverflow.com/q/51744103" type="text/html" />
+    <subtitle>most recent 30 from stackoverflow.com</subtitle>
+    <updated>2019-02-09T20:44:41Z</updated>
+    <id>https://stackoverflow.com/feeds/question/51744103</id>
+    <creativeCommons:license>http://www.creativecommons.org/licenses/by-sa/3.0/rdf</creativeCommons:license> 
+    <entry>
+        <id>https://stackoverflow.com/q/51744103</id>
+        <re:rank scheme="https://stackoverflow.com">2</re:rank>
+        <title type="text">Why can&#39;t `cargo build` compile structopt-derive in VS Code?</title>
+            <category scheme="https://stackoverflow.com/tags" term="visual-studio-code" />
+            <category scheme="https://stackoverflow.com/tags" term="rust" />
+            <category scheme="https://stackoverflow.com/tags" term="rust-cargo" />
+        <author>
+            <name>Riduidel</name>
+            <uri>https://stackoverflow.com/users/15619</uri>
+        </author>
+        <link rel="alternate" href="https://stackoverflow.com/questions/51744103/why-cant-cargo-build-compile-structopt-derive-in-vs-code" />
+        <published>2018-08-08T10:13:06Z</published>
+        <updated>2018-08-08T13:02:35Z</updated>
+        <summary type="html">
+            
+
+            &lt;p&gt;I&#39;m trying to write a small CLI application using Rust and the excellent structopt crate.&lt;/p&gt;
+
+&lt;p&gt;When I&#39;m using Notepad++ (to write code) and Conemu (to run Cargo commands), everything works fine.&lt;/p&gt;
+
+&lt;p&gt;However, when I&#39;m using VS Code with &lt;a href=&quot;https://github.com/rust-lang-nursery/rls-vscode&quot; rel=&quot;nofollow noreferrer&quot;&gt;Rust plugin&lt;/a&gt; (or Eclipse Corrosion), &lt;code&gt;cargo build&lt;/code&gt; command fails with this error&lt;/p&gt;
+
+&lt;pre class=&quot;lang-none prettyprint-override&quot;&gt;&lt;code&gt;   Compiling atty v0.2.10
+   Compiling clap v2.31.2
+   Compiling structopt-derive v0.2.10
+error: linking with `C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Tools\MSVC\14.14.26428\bin\HostX64\x64\link.exe` failed: exit code: 1104
+  |
+  = note: &quot;C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Tools\\MSVC\\14.14.26428\\bin\\HostX64\\x64\\link.exe&quot; &quot;/NOLOGO&quot; &quot;/NXCOMPAT&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive0.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive1.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive10.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive11.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive12.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive13.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive14.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive15.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive2.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive3.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive4.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive5.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive6.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive7.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive8.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.structopt_derive9.rcgu.o&quot; &quot;/OUT:C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.dll&quot; &quot;/DEF:C:\\Users\\NICOLA~1\\AppData\\Local\\Temp\\rustc.NMAPUPGalI4H\\lib.def&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.crate.metadata.rcgu.o&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.crate.allocator.rcgu.o&quot; &quot;/OPT:REF,NOICF&quot; &quot;/DEBUG&quot; &quot;/NATVIS:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\etc\\intrinsic.natvis&quot; &quot;/NATVIS:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\etc\\liballoc.natvis&quot; &quot;/NATVIS:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\etc\\libcore.natvis&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\libsyn-e2bf8da738ad52ef.rlib&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\libquote-90431d93ebae45fd.rlib&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\libproc_macro2-f91721dd8e02bb17.rlib&quot; &quot;C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\libunicode_xid-4611d062b1d773c0.rlib&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;proc_macro-1f431d761952eacf.dll.lib&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;syntax-c4a428491fc49b8f.dll.lib&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;rustc_errors-5b01c9a7974f0222.dll.lib&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;syntax_pos-09170bc016e0b11a.dll.lib&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;rustc_data_structures-f974a5ad0e93670e.dll.lib&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;serialize-2eb0aeb35010f869.dll.lib&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;rustc_cratesio_shim-2e9a42f968785601.dll.lib&quot; &quot;/LIBPATH:C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib&quot; &quot;std-81327c94ecbc69b1.dll.lib&quot; &quot;C:\\Users\\nicolas-delsaux\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\lib\\rustlib\\x86_64-pc-windows-msvc\\lib\\libcompiler_builtins-e8d853735a158029.rlib&quot; &quot;opengl32.lib&quot; &quot;kernel32.lib&quot; &quot;setupapi.lib&quot; &quot;msimg32.lib&quot; &quot;credui.lib&quot; &quot;winspool.lib&quot; &quot;user32.lib&quot; &quot;gdi32.lib&quot; &quot;secur32.lib&quot; &quot;dbghelp.lib&quot; &quot;advapi32.lib&quot; &quot;advapi32.lib&quot; &quot;ws2_32.lib&quot; &quot;userenv.lib&quot; &quot;shell32.lib&quot; &quot;msvcrt.lib&quot; &quot;/DLL&quot; &quot;/IMPLIB:C:\\Users\\nicolas-delsaux\\Documents\\open-source\\rrss2imap\\target\\debug\\deps\\structopt_derive-406f571196e63046.dll.lib&quot;
+  = note: LINK : fatal error LNK1104: impossible d&#39;ouvrir le fichier &#39;C:\Users\nicolas-delsaux\Documents\open-source\rrss2imap\target\debug\deps\structopt_derive-406f571196e63046.dll&#39;
+
+
+error: aborting due to previous error
+
+error: Could not compile `structopt-derive`.
+warning: build failed, waiting for other jobs to finish...
+error: build failed
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It seems like some process has locked the output file, but LockHunter (which I use to detect that kind of locks) doesn&#39;t detect any...&lt;/p&gt;
+
+&lt;p&gt;What is the problem? What can I do - beside coding using Notepad++ - to be able to run cargo commands in VS Code?&lt;/p&gt;
+
+        </summary>
+    </entry>
+    <entry>
+        <id>https://stackoverflow.com/questions/51744103/-/51744721#51744721</id>
+        <re:rank scheme="https://stackoverflow.com">2</re:rank>
+        <title type="text">Answer by Riduidel for Why can&#39;t `cargo build` compile structopt-derive in VS Code?</title>
+        <author>
+            <name>Riduidel</name>
+            <uri>https://stackoverflow.com/users/15619</uri>
+        </author>
+        <link rel="alternate" href="https://stackoverflow.com/questions/51744103/why-cant-cargo-build-compile-structopt-derive-in-vs-code/51744721#51744721" />
+        <published>2018-08-08T10:45:07Z</published>
+        <updated>2018-08-08T10:45:07Z</updated>
+        <summary type="html">&lt;p&gt;Seems like it&#39;s a bug in RLS : &lt;a href=&quot;https://github.com/rust-lang-nursery/rls/issues/802&quot; rel=&quot;nofollow noreferrer&quot;&gt;Windows: RLS keeping derive plugin DLLs opened prevents &lt;code&gt;cargo build&lt;/code&gt; from working #802&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Whenever the RLS is running for a crate, I can&#39;t do cargo build for that crate. It fails with errors like this:&lt;/p&gt;
+  
+  &lt;p&gt;[...]&lt;/p&gt;
+  
+  &lt;p&gt;Looking in Process Explorer, RLS has the derive plugin DLLs loaded. I assume this is what&#39;s causing cargo to fail, since it can&#39;t write to those files while they&#39;re loaded. Similarly, cargo clean fails:&lt;/p&gt;
+  
+  &lt;p&gt;[...]&lt;/p&gt;
+  
+  &lt;p&gt;If I close VSCode (and thus RLS), building with cargo build works fine again.&lt;/p&gt;
+  
+  &lt;p&gt;I assume this is Windows-specific due to its file exclusivity behavior. I think this started happening with a recent nightly (3/28?). I suppose this could&#39;ve been caused by some change in cargo or rustc causing it to write to dlls which were already built or something.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;So solution should be quite simple : update RLS to its latest version and see the bug being fixed !&lt;/p&gt;
+
+&lt;p&gt;And to update RLS, it&#39;s simply a matter of &lt;code&gt;rustup update&lt;/code&gt;&lt;/p&gt;
+</summary>
+    </entry></feed>
