@@ -8,7 +8,7 @@ repository = "https://github.com/Riduidel/rrss2imap"
 readme = "README.md"
 keywords = ["RSS", "Atom", "IMAP", "command-line", "script"]
 categories = ["command-line-utilities", "email"]
-license = "GPL"
+license = "GPL-3.0-or-later"
 
 [dependencies]
 log = "0.4.6"
