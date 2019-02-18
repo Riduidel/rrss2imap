@@ -71,18 +71,20 @@ impl Feed {
         info!("Reading feed from {}", self.url);
         match requests::get(&self.url) {
             Ok(response) => {
-                let text = response.text().unwrap();
-                let parsed = text.parse::<syndication::Feed>().unwrap();
-                match parsed {
-                    syndication::Feed::Atom(atom_feed) => self.read_atom(atom_feed, settings, config, email),
-                    syndication::Feed::RSS(rss_feed) => self.read_rss(rss_feed, settings, config, email)
+                match response.text() {
+                    Some(text) => match text.parse::<syndication::Feed>() {
+                        Ok(parsed) => return match parsed {
+                            syndication::Feed::Atom(atom_feed) => self.read_atom(atom_feed, settings, config, email),
+                            syndication::Feed::RSS(rss_feed) => self.read_rss(rss_feed, settings, config, email)
+                        },
+                        Err(e) => error!("Content ar {} is neither Atom, nor RSS {}", &self.url, e)
+                    }, 
+                    None => error!("There is no text at {}", &self.url)
                 }
             },
-            Err(response) => {
-                error!("Unable to get {} due to {}", &self.url, response);
-                self.clone()
-            }
+            Err(e) => error!("Unable to get {} due to {}", &self.url, e)
         }
+        self.clone()
     }
 
     fn read_atom(&self, feed:AtomFeed, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
