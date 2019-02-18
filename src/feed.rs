@@ -69,22 +69,24 @@ impl Feed {
 
     pub fn read(&self, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
         info!("Reading feed from {}", self.url);
-        let response = requests::get(&self.url).unwrap();
-        if response.ok() {
-            let text = response.text().unwrap();
-            let parsed = text.parse::<syndication::Feed>().unwrap();
-            match parsed {
-                syndication::Feed::Atom(atom_feed) => self.read_atom(atom_feed, settings, config, email),
-                syndication::Feed::RSS(rss_feed) => self.read_rss(rss_feed, settings, config, email)
+        match requests::get(&self.url) {
+            Ok(response) => {
+                let text = response.text().unwrap();
+                let parsed = text.parse::<syndication::Feed>().unwrap();
+                match parsed {
+                    syndication::Feed::Atom(atom_feed) => self.read_atom(atom_feed, settings, config, email),
+                    syndication::Feed::RSS(rss_feed) => self.read_rss(rss_feed, settings, config, email)
+                }
+            },
+            Err(response) => {
+                error!("Unable to get {} due to {}", &self.url, response);
+                self.clone()
             }
-        } else {
-            error!("HTTP code is {} when trying to get feed {}", response.status_code(), &self.url);
-            self.clone()
         }
     }
 
     fn read_atom(&self, feed:AtomFeed, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
-        info!("reading ATOM feed {}", &self.url);
+        debug!("reading ATOM feed {}", &self.url);
         let feed_date_text = feed.updated();
         let feed_date = feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc();
         info!("Feed date is {} while previous read date is {}", feed_date, self.last_updated);
@@ -103,7 +105,7 @@ impl Feed {
     }
 
     fn read_rss(&self, feed:Channel, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
-        info!("reading RSS feed {}", &self.url);
+        debug!("reading RSS feed {}", &self.url);
         let feed_date_text = feed.pub_date().unwrap_or_else(|| feed.last_build_date().unwrap());
         let feed_date = DateTime::parse_from_rfc2822(&feed_date_text).unwrap().naive_utc();
         info!("Feed date is {} while previous read date is {}", feed_date, self.last_updated);
