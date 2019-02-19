@@ -19,6 +19,9 @@ extern crate tera;
 #[macro_use]
 extern crate lazy_static;
 
+#[macro_use]
+extern crate human_panic;
+
 extern crate kuchiki;
 
 extern crate imap;
@@ -107,6 +110,9 @@ enum RRSS2IMAP {
 }
 
 fn main() {
+    if !cfg!(debug_assertions) {
+        setup_panic!();
+    }
     // Configure logger
     Logger::with_env()
         .start()
