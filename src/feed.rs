@@ -108,7 +108,14 @@ impl Feed {
 
     fn read_rss(&self, feed:Channel, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
         debug!("reading RSS feed {}", &self.url);
-        let feed_date_text = feed.pub_date().unwrap_or_else(|| feed.last_build_date().unwrap());
+        let n = Utc::now();
+        let feed_date_text = match feed.pub_date() {
+            Some(p) => p.to_owned(),
+            None => match feed.last_build_date() {
+                Some(l) => l.to_owned(),
+                None => n.to_rfc2822()
+            }
+        };
         let feed_date = DateTime::parse_from_rfc2822(&feed_date_text).unwrap().naive_utc();
         info!("Feed date is {} while previous read date is {}", feed_date, self.last_updated);
         if feed_date>=self.last_updated {

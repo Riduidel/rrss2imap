@@ -10,7 +10,17 @@ use chrono::DateTime;
 
 impl Dated for Item {
     fn last_date(&self)->NaiveDateTime {
-        DateTime::parse_from_rfc2822(&self.pub_date().unwrap()).unwrap().naive_utc()
+        if self.pub_date().is_some() {
+            let pub_date = str::replace(self.pub_date().unwrap(), "-0000", "+0000");
+            return DateTime::parse_from_rfc2822(&pub_date).unwrap_or_else(|e| panic!("pub_date for item {:?} (value is {:?}) can't be parsed. {:?}", 
+                &self, pub_date, e)).naive_utc();
+        } else if self.dublin_core_ext().is_some() && self.dublin_core_ext().unwrap().dates().len()>0 {
+            let pub_date = &self.dublin_core_ext().unwrap().dates()[0];
+            return DateTime::parse_from_rfc3339(&pub_date).unwrap_or_else(|e| panic!("dc:pub_date for item {:?} (value is {:?}) can't be parsed. {:?}", 
+                &self, pub_date, e)).naive_utc();
+        } else {
+            panic!("feed item {:?} can't be parsed, as it doesn't have neither pub_date nor dc:pub_date", &self);
+        }
     }
 
 }
