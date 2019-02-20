@@ -12,7 +12,7 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 log = "0.4.6"
-flexi_logger = "0.10.5"
+flexi_logger = "0.9"
 # Used for parsing command line args
 structopt = "0.2"
 # Used for reading/writing config file
