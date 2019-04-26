@@ -40,6 +40,7 @@ quoted_printable = "0.4.0"
 requests = "0.0.30"
 xhtmlchardet = "2.0.0"
 human-panic = "1.0.1"
+url = "1.7.2"
 
 [dev-dependencies]
 assert_cli = "0.6"

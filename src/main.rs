@@ -35,6 +35,8 @@ extern crate atom_syndication;
 
 extern crate xhtmlchardet;
 
+extern crate url;
+
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;

@@ -8,6 +8,8 @@ use rss::Channel as SourceFeed;
 
 use chrono::DateTime;
 
+use url::Url;
+
 impl Dated for Item {
     fn last_date(&self)->NaiveDateTime {
         if self.pub_date().is_some() {
@@ -49,9 +51,29 @@ impl Extractable<SourceFeed> for Item {
         }
     }
     fn get_authors(&self, feed:&SourceFeed, _settings:&Settings) -> Vec<String> {
+        let domain = find_domain(feed);
+        // This is where we also transform author names into urls in order
+        // to have valid email addresses everywhere
+        let mut message_authors:Vec<String>;
         match self.author() {
-            Some(l) => vec![l.to_owned()],
-            _ => vec![feed.title().to_owned()]
+            Some(l) => message_authors = vec![l.to_owned()],
+            _ => message_authors = vec![feed.title().to_owned()]
         }
+        message_authors = message_authors.iter()
+            .map(|author| (author, author
+                                    .replace(" ", "_")))
+            .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
+            .collect();
+        message_authors
     }
+}
+
+fn find_domain(feed:&SourceFeed) -> String {
+    return Some(feed.link())
+        .map(|href| Url::parse(href).unwrap())
+        // then get host
+        .map(|url| url.host_str().unwrap().to_string())
+        // and return value
+        .unwrap_or("todo.find.domain.atom".to_string())
+        ;
 }

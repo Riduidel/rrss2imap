@@ -3,6 +3,7 @@ use chrono::{NaiveDateTime, DateTime, Utc};
 use super::settings::*;
 use super::extractable::*;
 
+use url::Url;
 use atom_syndication::Entry;
 use atom_syndication::Feed as SourceFeed;
 
@@ -38,13 +39,35 @@ impl Extractable<SourceFeed> for Entry {
             .collect()
     }
     fn get_authors(&self, feed:&SourceFeed, _settings:&Settings) -> Vec<String> {
-        let message_authors:Vec<String> = self.clone().authors().iter()
+        let domain = find_domain(feed);
+        // This is where we also transform author names into urls in order
+        // to have valid email addresses everywhere
+        let mut message_authors:Vec<String> = self.clone().authors().iter()
             .map(|a| a.name().to_owned())
             .collect();
         if message_authors.is_empty() {
-            vec![feed.title().to_owned()]
-        } else {
-            message_authors
+            message_authors = vec![feed.title().to_owned()]
         }
+        message_authors = message_authors.iter()
+            .map(|author| (author, author
+                                    .replace(" ", "_")))
+            .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
+            .collect();
+        message_authors
     }
+}
+
+fn find_domain(feed:&SourceFeed) -> String {
+    return feed.links().iter()
+        .filter(|link| link.rel()=="self" || link.rel()=="alternate")
+        .next()
+        // Get the link
+        .map(|link| link.href())
+        // Transform it into an url
+        .map(|href| Url::parse(href).unwrap())
+        // then get host
+        .map(|url| url.host_str().unwrap().to_string())
+        // and return value
+        .unwrap_or("todo.find.domain.rss".to_string())
+        ;
 }
