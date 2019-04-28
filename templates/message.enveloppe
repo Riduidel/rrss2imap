@@ -1,7 +1,7 @@
 MIME-Version: 1.0
 User-Agent: rss2email
 Content-Transfer-Encoding: base64
-To: Me <me@localhost>
+To: {{to}}
 Subject: {{title}}
 Date: {{date}}
 Content-Type: text/html; charset="{{charset}}"

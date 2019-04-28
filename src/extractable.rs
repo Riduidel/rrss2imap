@@ -71,6 +71,7 @@ pub trait Extractable<SourceFeed> : Dated {
         context.insert("id", &self.get_id(settings));
         context.insert("title", &self.get_title(settings));
         context.insert("from", &self.get_authors(source_feed, settings));
+        context.insert("to", &feed.config.get_email(config));
         context.insert("date", &self.last_date().format("%a, %d %b %Y %H:%M:%S -0000").to_string());
         context
     }
