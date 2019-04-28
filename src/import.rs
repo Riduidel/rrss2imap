@@ -50,6 +50,7 @@ fn import_outline(outline: Element, to_store: &mut Store, folder: &str) {
                 config: Config {
                     email: None,
                     folder: Some(folder.to_string()),
+                    inline_image_as_data: false
                 },
                 last_updated: Feed::at_epoch()
             };

@@ -1,6 +1,8 @@
 # rrss2imap
 
-rrss2imap is a Rust reimplmeentation of the classical Python script [rss2imap](https://github.com/rcarmo/rss2imap)
+[![Built with cargo-make](https://sagiegurari.github.io/cargo-make/assets/badges/cargo-make.svg)](https://sagiegurari.github.io/cargo-make)
+
+rrss2imap is a Rust reimplementation of the classical Python script [rss2imap](https://github.com/rcarmo/rss2imap)
 
 Goals of this project include
 
@@ -17,6 +19,13 @@ Goals of this project include
 ### Prerequisites
 
 You need a complete rust build chain
+
+To perform a release, you'll also need
+
+* [cargo make](https://github.com/sagiegurari/cargo-make#usage-predefined-flows)
+* [cargo release](https://github.com/sunng87/cargo-release)
+* [git journal](https://github.com/saschagrunert/git-journal)
+* [cargo hublish](https://github.com/chasinglogic/cargo-hublish)
 
 ### Installing
 

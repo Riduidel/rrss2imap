@@ -101,8 +101,8 @@ pub struct Settings {
     )]
     pub do_not_save: bool,
     #[serde(
-        skip_serializing_if = "Settings::is_true",
-        default = "Settings::default_true"
+        skip_serializing_if = "Settings::is_false",
+        default = "Settings::default_false"
     )]
     pub inline_image_as_data: bool,
     #[serde(default = "Email::default")]
@@ -127,7 +127,7 @@ impl Settings {
     pub fn default() -> Settings {
         Settings {
             do_not_save: false,
-            inline_image_as_data: true,
+            inline_image_as_data: false,
             email: Email::default(),
         }
     }

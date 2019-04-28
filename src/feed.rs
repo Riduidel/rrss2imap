@@ -14,7 +14,7 @@ pub struct Feed {
     #[serde(skip_serializing_if = "Config::is_none", default = "Config::new")]
     pub config: Config,
     #[serde(default = "Feed::at_epoch")]
-    pub last_updated: NaiveDateTime
+    pub last_updated: NaiveDateTime,
 }
 
 impl Feed {
@@ -58,8 +58,9 @@ impl Feed {
             config: Config {
                 email,
                 folder,
+                inline_image_as_data: false
             },
-            last_updated: Feed::at_epoch()
+            last_updated: Feed::at_epoch(),
         }
     }
 
@@ -100,7 +101,7 @@ impl Feed {
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
-                last_updated: if settings.do_not_save { self.last_updated } else { feed_date }
+                last_updated: if settings.do_not_save { self.last_updated } else { feed_date },
             };
         }        
         self.clone()
@@ -126,7 +127,7 @@ impl Feed {
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
-                last_updated: if settings.do_not_save { self.last_updated } else { feed_date }
+                last_updated: if settings.do_not_save { self.last_updated } else { feed_date },
             };
         }        
         self.clone()

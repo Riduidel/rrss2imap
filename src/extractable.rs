@@ -39,33 +39,45 @@ pub trait Extractable<SourceFeed> : Dated {
 
     /// Makes a valid HTML file out of the given Item.
     /// This method provides all the transformation that should happen
-    fn extract_content(&self, feed:&SourceFeed, settings:&Settings) -> String {
-        TERA.render("message.html", &self.build_context(feed, settings)).unwrap()
+    fn extract_content(&self, feed:&Feed, source_feed:&SourceFeed, settings:&Settings, config:&Config) -> String {
+        TERA.render("message.html", &self.build_context(feed, source_feed, settings, config)).unwrap()
     }
 
     fn write_to_imap(&self, feed:&Feed, source:&SourceFeed, settings:&Settings, config:&Config, email:&mut Imap) {
         let folder = feed.config.get_folder(config);
-        let content = self.build_message(source, settings);
+        let content = self.build_message(feed, source, settings, config);
         match email.append(&folder, content) {
             Ok(_) => debug!("Successfully written {}", self.get_title(settings)),
             Err(e) => error!("{}\nUnable to select mailbox {}. Item titled {} won't be written", 
                     e, &folder, self.get_title(settings))
         }
     }
-    fn build_context(&self, feed:&SourceFeed, settings:&Settings)->Context {
+    ///
+    /// Process the feed effective content.
+    /// This should allow
+    /// * image transformation into base64 when needed
+    /// 
+    fn get_processed_content(&self, feed:&Feed, settings:&Settings, config:&Config)->String {
+        let content = self.get_content(settings);
+        if feed.config.inline_image_as_data || config.inline_image_as_data {
+            info!("We should inline image as base64 data for {}", self.get_id(settings));
+        }
+        return content;
+    }
+    fn build_context(&self, feed:&Feed, source_feed:&SourceFeed, settings:&Settings, config:&Config)->Context {
         let mut context = Context::new();
-        context.insert("feed_entry", &self.get_content(settings));
+        context.insert("feed_entry", &self.get_processed_content(feed, settings, config));
         context.insert("links", &self.get_links(settings));
         context.insert("id", &self.get_id(settings));
         context.insert("title", &self.get_title(settings));
-        context.insert("from", &self.get_authors(feed, settings));
+        context.insert("from", &self.get_authors(source_feed, settings));
         context.insert("date", &self.last_date().format("%a, %d %b %Y %H:%M:%S -0000").to_string());
         context
     }
 
-    fn build_message(&self, feed:&SourceFeed, settings:&Settings)->String {
-        let mut context = self.build_context(feed, settings);
-        let content = self.extract_content(feed, settings);
+    fn build_message(&self, feed:&Feed, source_feed:&SourceFeed, settings:&Settings, config:&Config)->String {
+        let mut context = self.build_context(feed, source_feed, settings, config);
+        let content = self.extract_content(feed, source_feed, settings, config);
         context.insert("message_body", &base64::encode(&content));
         context.insert("charset", &self.get_charset(&content, settings));
         TERA.render("message.enveloppe", &context).unwrap()

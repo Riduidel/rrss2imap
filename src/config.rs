@@ -1,3 +1,5 @@
+use super::settings::*;
+
 /// This structure defines the feed-level config.
 /// All elements here may be configured twice : once at feed level, and once at global level.
 /// Obviously, all elements which are not defined at feed level use global configuration
@@ -7,6 +9,11 @@ pub struct Config {
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub folder: Option<String>,
+    #[serde(
+        skip_serializing_if = "Settings::is_false",
+        default = "Settings::default_false"
+    )]
+    pub inline_image_as_data: bool,
 }
 
 impl Config {
@@ -14,6 +21,7 @@ impl Config {
         Config {
             email: None,
             folder: None,
+            inline_image_as_data: false
         }
     }
 
@@ -34,7 +42,7 @@ impl Config {
     /// Used by serde to skip serialization of default config for feeds
     /// This method check if config is the default one (consisting only into None options)
     pub fn is_none(config: &Config) -> bool {
-        config.email.is_none() && config.folder.is_none()
+        config.email.is_none() && config.folder.is_none() && config.inline_image_as_data==false
     }
 
     /// Clear all content from this config excepted email address

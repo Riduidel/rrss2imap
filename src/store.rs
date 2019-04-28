@@ -36,7 +36,7 @@ impl Store {
                 .unwrap_or_else(|_| panic!("Unable to read file {}", STORE));
             // Then deserialize its content
             let store: Store =
-                serde_json::from_str(&contents).expect("Can't serialize Store to JSON");
+                serde_json::from_str(&contents).expect("Can't deserialize Store from JSON");
             // And return it
             store
         } else {
@@ -45,6 +45,7 @@ impl Store {
                 default: Config {
                     email: None,
                     folder: None,
+                    inline_image_as_data: Settings::default().inline_image_as_data
                 },
                 feeds: vec![],
             }
