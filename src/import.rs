@@ -10,7 +10,8 @@ use super::store::Store;
 use treexml::*;
 
 pub fn import(from_file: &PathBuf, to_store: &mut Store) {
-    let mut file = File::open(from_file).unwrap_or_else(|_| panic!("Unable to open file {:?}", from_file));
+    let mut file =
+        File::open(from_file).unwrap_or_else(|_| panic!("Unable to open file {:?}", from_file));
     let mut contents = String::new();
     file.read_to_string(&mut contents)
         .unwrap_or_else(|_| panic!("Unable to read file {:?}", from_file));
@@ -50,9 +51,9 @@ fn import_outline(outline: Element, to_store: &mut Store, folder: &str) {
                 config: Config {
                     email: None,
                     folder: Some(folder.to_string()),
-                    inline_image_as_data: false
+                    inline_image_as_data: false,
                 },
-                last_updated: Feed::at_epoch()
+                last_updated: Feed::at_epoch(),
             };
             to_store.add_feed(feed);
         } else {

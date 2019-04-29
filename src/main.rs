@@ -1,12 +1,12 @@
 //! Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 //! This application is an adaption of the rss2imap Python script to Rust.
-//! 
+//!
 //! #### How to use ?
-//! 
+//!
 //! The simplest way to understand what to do is just to run `rrss2imap --help`
-//! 
+//!
 //! It should output something like
-//! 
+//!
 //!     FLAGS:
 //!         -h, --help       Prints help information
 //!         -V, --version    Prints version information
@@ -22,18 +22,18 @@
 //!         new       Creates a new feedfile with the given email address
 //!         reset     Reset feedfile (in other words, remove everything)
 //!         run       Run feed parsing and transformation
-//! 
+//!
 //! Which give you a glimpse of what will happen
-//! 
+//!
 //! Each of these commands also provide some help, when run with the same `--help` flag.
-//! 
+//!
 //! The important operations to memorize are obviously
-//! 
+//!
 //! #### `rrss2imap new`
-//! 
-//! Creates a new `config.json` file. At init time, the config file will only contains `settings` element 
-//! with the email address set. You **have** to set 
-//! 
+//!
+//! Creates a new `config.json` file. At init time, the config file will only contains `settings` element
+//! with the email address set. You **have** to set
+//!
 //! * the used imap server
 //! ** with user login and password
 //! ** and security settings (secure should contain `{"Yes": secure port}` for imap/s
@@ -43,37 +43,37 @@
 //! ** email will be the recipient email address (which may not be yours for easier filtering)
 //! ** Base64 image inlining
 //! * feeds is the list of all rss feeds that can be added
-//! 
+//!
 //! #### `rrss2imap add`
-//! 
+//!
 //! This command will add a new feed to your config. You can directly set here the email recipient as well as the folder
 //! (but not the base64 image inlining parameter)
-//! 
+//!
 //! #### `rrss2imap run`
-//! 
+//!
 //! THis is the main command. It will
-//! 
+//!
 //! 1. get all rss/atom feed contents
 //! 2. List all new entries in these feeds
 //! 3. Transform these entries into valid email messages
 //! 4. Push these mail messages directly on IMAP server
-//! 
+//!
 //! #### `rrss2imap list`
-//! 
+//!
 //! Displays a list of the rss feeds. Here is an example
-//! 
+//!
 //! ```
 //! 0 : http://tontof.net/?rss (to: Nicolas Delsaux <nicolas.delsaux@gmx.fr> (default)) RSS/rrss2imap (default)
 //! 1 : https://www.brothers-brick.com/feed/ (to: Nicolas Delsaux <nicolas.delsaux@gmx.fr> (default)) RSS/rrss2imap (default)
 //! 2 : https://nicolas-delsaux.hd.free.fr/rss-bridge/?action=display&bridge=LesJoiesDuCode&format=AtomFormat (to: Nicolas Delsaux <nicolas.delsaux@gmx.fr> (default)) RSS/rrss2imap (default)
 //! ```
-//! 
+//!
 //! Please notice that each entry has an associated number, which is the one to enter when running `rrss2imap delete <NUMBER>`
-//! 
+//!
 //! #### `config.json` format
-//! 
+//!
 //! A typical feedfile will look like this
-//! 
+//!
 //! ```json
 //!     {
 //!       "settings": {
@@ -140,9 +140,9 @@ extern crate native_tls;
 
 extern crate base64;
 
+extern crate atom_syndication;
 extern crate requests;
 extern crate rss;
-extern crate atom_syndication;
 
 extern crate xhtmlchardet;
 
@@ -155,21 +155,21 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 mod config;
-mod export;
-mod feed;
-mod extractable;
-mod item;
 mod entry;
-mod import;
-mod store;
-mod settings;
-mod syndication;
+mod export;
+mod extractable;
+mod feed;
 mod image_to_data;
+mod import;
+mod item;
+mod settings;
+mod store;
+mod syndication;
 
 ///
 /// rrss2imap is a script used to transform rss feed entries into mail messages that are directly dropped
 /// into your mailbox by the grace of imap protocol
-/// 
+///
 #[derive(Debug, StructOpt)]
 #[structopt(name = "rrss2imap")]
 enum RRSS2IMAP {

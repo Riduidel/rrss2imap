@@ -1,5 +1,5 @@
-use imap::Session;
 use imap::error::Result;
+use imap::Session;
 
 use super::config::Config;
 
@@ -26,7 +26,7 @@ pub struct Email {
 
 pub enum Imap {
     Secured(Session<native_tls::TlsStream<std::net::TcpStream>>),
-    Insecured(Session<std::net::TcpStream>)
+    Insecured(Session<std::net::TcpStream>),
 }
 
 impl Imap {
@@ -68,14 +68,23 @@ impl Email {
         // to do anything useful with the e-mails, we need to log in
         let imap_session = client
             .login(&self.user, &self.password)
-            .unwrap_or_else(|_| panic!("Couldn't isnecurely connect to {}:{} for login {}", self.server, port, self.user));
-        
-        info!("Successfully connected to INSECURE imap server {}", self.server);
+            .unwrap_or_else(|_| {
+                panic!(
+                    "Couldn't isnecurely connect to {}:{} for login {}",
+                    self.server, port, self.user
+                )
+            });
+
+        info!(
+            "Successfully connected to INSECURE imap server {}",
+            self.server
+        );
         Imap::Insecured(imap_session)
     }
 
     pub fn start_secure(&self, port: u16) -> Imap {
-        let tls = native_tls::TlsConnector::builder().build()
+        let tls = native_tls::TlsConnector::builder()
+            .build()
             .expect("Couldn't create TLS connector");
 
         // we pass in the domain twice to check that the server's TLS
@@ -87,9 +96,17 @@ impl Email {
         // to do anything useful with the e-mails, we need to log in
         let imap_session = client
             .login(&self.user, &self.password)
-            .unwrap_or_else(|_| panic!("Couldn't securely connect to {}:{} for login {}", self.server, port, self.user));
-        
-        info!("Successfully connected to SECURE imap server {}", self.server);
+            .unwrap_or_else(|_| {
+                panic!(
+                    "Couldn't securely connect to {}:{} for login {}",
+                    self.server, port, self.user
+                )
+            });
+
+        info!(
+            "Successfully connected to SECURE imap server {}",
+            self.server
+        );
         Imap::Secured(imap_session)
     }
 }
@@ -110,7 +127,7 @@ pub struct Settings {
     #[serde(default = "Email::default")]
     pub email: Email,
     #[serde(default = )]
-    pub config:Config
+    pub config: Config,
 }
 
 impl Settings {
@@ -133,7 +150,7 @@ impl Settings {
             do_not_save: false,
             inline_image_as_data: false,
             email: Email::default(),
-            config: Config::new()
+            config: Config::new(),
         }
     }
 

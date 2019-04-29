@@ -13,11 +13,11 @@ impl FromStr for Feed {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.parse::<atom_syndication::Feed>() {
-            Ok (feed) => Ok (Feed::Atom(feed)),
+            Ok(feed) => Ok(Feed::Atom(feed)),
             _ => match s.parse::<rss::Channel>() {
-                Ok (channel) => Ok (Feed::RSS(channel)),
-                _ => Err ("Could not parse XML as Atom or RSS from input")
-            }
+                Ok(channel) => Ok(Feed::RSS(channel)),
+                _ => Err("Could not parse XML as Atom or RSS from input"),
+            },
         }
     }
 }
