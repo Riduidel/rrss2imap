@@ -1,6 +1,8 @@
 use imap::Session;
 use imap::error::Result;
 
+use super::config::Config;
+
 /// Secured connection or not ?
 /// Whichever is chosen, user has to give the port as parameter
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -107,6 +109,8 @@ pub struct Settings {
     pub inline_image_as_data: bool,
     #[serde(default = "Email::default")]
     pub email: Email,
+    #[serde(default = )]
+    pub config:Config
 }
 
 impl Settings {
@@ -129,6 +133,7 @@ impl Settings {
             do_not_save: false,
             inline_image_as_data: false,
             email: Email::default(),
+            config: Config::new()
         }
     }
 

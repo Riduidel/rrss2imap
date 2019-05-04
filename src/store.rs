@@ -16,7 +16,6 @@ use super::settings::Settings;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
     pub settings: Settings,
-    pub default: Config,
     pub feeds: Vec<Feed>,
 }
 
@@ -42,11 +41,6 @@ impl Store {
         } else {
             Store {
                 settings: Settings::default(),
-                default: Config {
-                    email: None,
-                    folder: None,
-                    inline_image_as_data: Settings::default().inline_image_as_data
-                },
                 feeds: vec![],
             }
         }
@@ -60,7 +54,7 @@ impl Store {
 
     /// Set a new value for email and save file (prior to obviously exiting)
     pub fn set_email(&mut self, email: String) {
-        self.default.email = Some(email);
+        self.settings.config.email = Some(email);
         self.save();
     }
 
@@ -101,7 +95,7 @@ impl Store {
 
     pub fn reset(&mut self) {
         self.feeds.clear();
-        self.default.clear();
+        self.settings.config.clear();
         self.save();
         info!("store have been cleared to contain only {:?}", self);
     }
@@ -109,7 +103,7 @@ impl Store {
     pub fn run(&mut self) {
         // Initialize mail server before processing feeds
         let mut mail = self.settings.connect();
-        self.feeds = self.feeds.iter().map(|f| f.read(&self.settings, &self.default, &mut mail)).collect::<Vec<Feed>>();
+        self.feeds = self.feeds.iter().map(|f| f.read(&self.settings, &mut mail)).collect::<Vec<Feed>>();
         self.save();
     }
 
@@ -118,7 +112,7 @@ impl Store {
             .feeds
             .iter()
             .enumerate()
-            .map(|(i, f)| format!("{} : {}", i, f.to_string(&self.default)))
+            .map(|(i, f)| format!("{} : {}", i, f.to_string(&self.settings.config)))
             .collect();
         println!("{}", &lines.join("\n"));
     }

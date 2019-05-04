@@ -19,7 +19,7 @@ pub fn export(to_file: &PathBuf, to_store: &Store) {
 fn group_feeds(to_store: &Store) -> HashMap<String, Vec<Feed>> {
     to_store.feeds.iter().fold(HashMap::new(), |mut map, feed| {
         let feed = feed.clone();
-        let folder = feed.clone().config.get_folder(&to_store.default);
+        let folder = feed.clone().config.get_folder(&to_store.settings.config);
         if !map.contains_key(&folder) {
             map.insert(folder.clone(), vec![]);
         }

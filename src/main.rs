@@ -37,6 +37,8 @@ extern crate xhtmlchardet;
 
 extern crate url;
 
+extern crate tree_magic;
+
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -51,6 +53,7 @@ mod import;
 mod store;
 mod settings;
 mod syndication;
+mod image_to_data;
 
 /// Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 /// This application is an adaption of the rss2imap Python script to Rust.

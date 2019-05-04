@@ -68,15 +68,15 @@ impl Feed {
         return format!("{} {}", self.url, self.config.clone().to_string(config));
     }
 
-    pub fn read(&self, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
+    pub fn read(&self, settings:&Settings, email:&mut Imap) -> Feed{
         info!("Reading feed from {}", self.url);
         match requests::get(&self.url) {
             Ok(response) => {
                 match response.text() {
                     Some(text) => match text.parse::<syndication::Feed>() {
                         Ok(parsed) => return match parsed {
-                            syndication::Feed::Atom(atom_feed) => self.read_atom(atom_feed, settings, config, email),
-                            syndication::Feed::RSS(rss_feed) => self.read_rss(rss_feed, settings, config, email)
+                            syndication::Feed::Atom(atom_feed) => self.read_atom(atom_feed, settings, email),
+                            syndication::Feed::RSS(rss_feed) => self.read_rss(rss_feed, settings, email)
                         },
                         Err(e) => error!("Content ar {} is neither Atom, nor RSS {}", &self.url, e)
                     }, 
@@ -88,7 +88,7 @@ impl Feed {
         self.clone()
     }
 
-    fn read_atom(&self, feed:AtomFeed, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
+    fn read_atom(&self, feed:AtomFeed, settings:&Settings, email:&mut Imap) -> Feed{
         debug!("reading ATOM feed {}", &self.url);
         let feed_date_text = feed.updated();
         let feed_date = feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc();
@@ -97,7 +97,7 @@ impl Feed {
             info!("There should be new entries, parsing HTML content");
             feed.entries().iter()
                 .filter(|e| e.last_date()>=self.last_updated)
-                .for_each(|e| e.write_to_imap(&self, &feed, settings, config, email));
+                .for_each(|e| e.write_to_imap(&self, &feed, settings, email));
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
@@ -107,7 +107,7 @@ impl Feed {
         self.clone()
     }
 
-    fn read_rss(&self, feed:Channel, settings:&Settings, config:&Config, email:&mut Imap) -> Feed{
+    fn read_rss(&self, feed:Channel, settings:&Settings, email:&mut Imap) -> Feed{
         debug!("reading RSS feed {}", &self.url);
         let n = Utc::now();
         let feed_date_text = match feed.pub_date() {
@@ -123,7 +123,7 @@ impl Feed {
             info!("There should be new entries, parsing HTML content");
             feed.items().iter()
                 .filter(|e| e.last_date()>=self.last_updated)
-                .for_each(|e| e.write_to_imap(&self, &feed, settings, config, email));
+                .for_each(|e| e.write_to_imap(&self, &feed, settings, email));
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
