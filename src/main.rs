@@ -1,7 +1,7 @@
 //! Application transforming rss feeds into email by directly pushing the entries into IMP folders.
 //! This application is an adaption of the rss2imap Python script to Rust.
 //! 
-//! # How to use ?
+//! #### How to use ?
 //! 
 //! The simplest way to understand what to do is just to run `rrss2imap --help`
 //! 
@@ -29,7 +29,7 @@
 //! 
 //! The important operations to memorize are obviously
 //! 
-//! # `rrss2imap new`
+//! #### `rrss2imap new`
 //! 
 //! Creates a new `config.json` file. At init time, the config file will only contains `settings` element 
 //! with the email address set. You **have** to set 
@@ -44,12 +44,12 @@
 //! ** Base64 image inlining
 //! * feeds is the list of all rss feeds that can be added
 //! 
-//! # `rrss2imap add`
+//! #### `rrss2imap add`
 //! 
 //! This command will add a new feed to your config. You can directly set here the email recipient as well as the folder
 //! (but not the base64 image inlining parameter)
 //! 
-//! # `rrss2imap run`
+//! #### `rrss2imap run`
 //! 
 //! THis is the main command. It will
 //! 
@@ -58,7 +58,7 @@
 //! 3. Transform these entries into valid email messages
 //! 4. Push these mail messages directly on IMAP server
 //! 
-//! # `rrss2imap list`
+//! #### `rrss2imap list`
 //! 
 //! Displays a list of the rss feeds. Here is an example
 //! 
@@ -70,7 +70,7 @@
 //! 
 //! Please notice that each entry has an associated number, which is the one to enter when running `rrss2imap delete <NUMBER>`
 //! 
-//! # `config.json` format
+//! #### `config.json` format
 //! 
 //! A typical feedfile will look like this
 //! 
