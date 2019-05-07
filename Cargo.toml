@@ -11,6 +11,12 @@ categories = ["command-line-utilities", "email"]
 license = "GPL-3.0-or-later"
 edition = "2018"
 
+[badges]
+travis-ci = { repository = "Riduidel/rrss2imap", branch = "master" }
+is-it-maintained-issue-resolution = { repository = "riduidel/rrss2imap" }
+is-it-maintained-open-issues = { repository = "riduidel/rrss2imap" }
+maintenance = { status = "actively-developed" }
+
 [dependencies]
 log = "0.4"
 flexi_logger = "0.11"

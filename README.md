@@ -1,6 +1,7 @@
 # rrss2imap
 
 [![Built with cargo-make](https://sagiegurari.github.io/cargo-make/assets/badges/cargo-make.svg)](https://sagiegurari.github.io/cargo-make)
+[![Build Status](https://travis-ci.org/Riduidel/rrss2imap.svg?branch=master)](https://travis-ci.org/Riduidel/rrss2imap)
 
 rrss2imap is a Rust reimplementation of the classical Python script [rss2imap](https://github.com/rcarmo/rss2imap)
 
