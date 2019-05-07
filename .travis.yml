@@ -8,10 +8,10 @@ cache: cargo
 script:
 - cargo test --verbose --all
 - cargo build --verbose --all --release
-- ls -al
+- ls -al target
 - mkdir -p target/executable
 - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
-- ls -al
+- ls -al target/executable
 matrix:
   include:
   - env: TARGET=i686-unknown-linux-gnu
