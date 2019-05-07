@@ -1,2 +1,28 @@
 language: rust
+rust:
+  - stable
 cache: cargo
+matrix:
+  include:
+    # Linux
+    - env: TARGET=i686-unknown-linux-gnu
+    - env: TARGET=i686-unknown-linux-musl
+    - env: TARGET=x86_64-unknown-linux-gnu
+    - env: TARGET=x86_64-unknown-linux-musl
+
+    # OSX
+    - env: TARGET=i686-apple-darwin
+      os: osx
+      osx_image: xcode8
+    - env: TARGET=x86_64-apple-darwin
+      os: osx
+      osx_image: xcode8
+
+    # Windows !
+    - env: TARGET=x86_64-pc-windows-msvc
+
+    # Raspberry Pi 1
+    - env: TARGET=arm-unknown-linux-gnueabi
+
+    # Raspberry Pi 2, 3, etc
+    - env: TARGET=armv7-unknown-linux-gnueabihf
