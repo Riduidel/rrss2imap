@@ -20,6 +20,7 @@ matrix:
 
     # Windows !
     - env: TARGET=x86_64-pc-windows-msvc
+      os: windows
 
     # Raspberry Pi 1
     - env: TARGET=arm-unknown-linux-gnueabi
