@@ -2,6 +2,9 @@ language: rust
 rust:
   - stable
 cache: cargo
+script:
+  - cargo build --verbose --all
+  - cargo test --verbose --all
 matrix:
   include:
     # Linux
