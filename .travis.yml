@@ -1,32 +1,40 @@
+branches:
+  except:
+  - "/^untagged/"
 language: rust
 rust:
-  - stable
+- stable
 cache: cargo
 script:
-  - cargo build --verbose --all
-  - cargo test --verbose --all
+- cargo test --verbose --all
+- cargo build --verbose --all --release
+- ls -al
+- mkdir -p target/executable
+- cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
+- ls -al
 matrix:
   include:
-    # Linux
-    - env: TARGET=i686-unknown-linux-gnu
-    - env: TARGET=i686-unknown-linux-musl
-    - env: TARGET=x86_64-unknown-linux-gnu
-    - env: TARGET=x86_64-unknown-linux-musl
-
-    # OSX
-    - env: TARGET=i686-apple-darwin
-      os: osx
-      osx_image: xcode8
-    - env: TARGET=x86_64-apple-darwin
-      os: osx
-      osx_image: xcode8
-
-    # Windows !
-    - env: TARGET=x86_64-pc-windows-msvc
-      os: windows
-
-    # Raspberry Pi 1
-    - env: TARGET=arm-unknown-linux-gnueabi
-
-    # Raspberry Pi 2, 3, etc
-    - env: TARGET=armv7-unknown-linux-gnueabihf
+  - env: TARGET=i686-unknown-linux-gnu
+  - env: TARGET=i686-unknown-linux-musl
+  - env: TARGET=x86_64-unknown-linux-gnu
+  - env: TARGET=x86_64-unknown-linux-musl
+  - env: TARGET=i686-apple-darwin
+    os: osx
+    osx_image: xcode8
+  - env: TARGET=x86_64-apple-darwin
+    os: osx
+    osx_image: xcode8
+  - env: TARGET=x86_64-pc-windows-msvc
+    os: windows
+  - env: TARGET=arm-unknown-linux-gnueabi
+  - env: TARGET=armv7-unknown-linux-gnueabihf
+deploy:
+  provider: releases
+  api_key:
+    secure: H+nkik3V7FtxBSRl5XeQe4Cw47sZO9cQKS0OL7IVaEVF7NM2SGUTW7t26O2C/FR35tdDkb7lQd0MFQTu2azPrHpFLbdFkQdvr7iBoHBtWb9T+WV0Xyv32H/1w6I1A0cp6VSH4UCWFjuV68OzXIbmRJgcQJ1TJPxNFY+2hddx8Z4RXIggqTnfImsplrVT7wB8xWotzyv8KD1kMa7XaoDQHXODEcQnBfc3dU7JcAP0wH/+2IG69mxEQQvDvfOY0yizCi3eqY4DiBcD8ECtySmrcgnt+l7KiPoTSKKbKn2s6qAnUjPvvRYIDyxtGEnSwPDmwUUbqqhZiUoC94Ic+d8zTJjti2qW63VX9FQn7PTbm3MawTY8PCh9aY4OlVgSbO31gvFNwlIABqKGlK7+9vt9Dc6L6thCVtGlorhockeMvq2u2iJBTB6VmobSplIk+O3YyWcvnKsnSPbSSxjDozS8MnX0qm26756X2yWmn79TYto8DIMK0XAZBzyO2NJRuFOoLw9MIT1TeWhIPASIhRA60Fl7fueUn8u3fodODoAEp6GYCiMufRxiwc7Lp8QQmpTis6uV0q0dQBD/1mpypLQsZQU247UT6CfPWOE7X6X12ai93+w1/NBjSttgW5IxET2fCZX5Qj10g4yQ2Zi7U7/bcIAAS2dmA6vAHj6MBNV/2zo=
+  file_glob: true
+  file: target/executable/*
+  skip_cleanup: true
+  overwrite: true
+  on:
+    repo: Riduidel/rrss2imap
