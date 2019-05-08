@@ -8,12 +8,14 @@ cache: cargo
 
 # This is th script that will be run on each matrix element
 script:
+- cargo install git-journal
 - cargo test --verbose --all
 - cargo build --verbose --all --release
 - ls -al target
 - mkdir -p target/executable
 - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
 - ls -al target/executable
+- echo $(git journal)
 
 # All Rust build architectures are defined here
 matrix:
@@ -35,9 +37,7 @@ matrix:
 
   # THis script is used to generate the changelog body from comments
 before_deploy:
-  if ! [[ $JOURNAL ]]; then
-    cargo install git-journal && export JOURNAL=$(git journal)
-  fi
+  - export JOURNAL=$(git journal)
 
 # Once the Rust packages are built, here they are deployed
 deploy:
