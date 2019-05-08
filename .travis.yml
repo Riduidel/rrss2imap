@@ -8,14 +8,14 @@ cache: cargo
 
 # This is th script that will be run on each matrix element
 script:
-- cargo install git-journal
+# - cargo install git-journal
 - cargo test --verbose --all
 - cargo build --verbose --all --release
 - ls -al target
 - mkdir -p target/executable
 - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
 - ls -al target/executable
-- git journal
+# - git journal
 
 # All Rust build architectures are defined here
 matrix:
@@ -36,8 +36,8 @@ matrix:
   - env: TARGET=armv7-unknown-linux-gnueabihf
 
   # THis script is used to generate the changelog body from comments
-before_deploy:
-  - export JOURNAL=$(git journal)
+#before_deploy:
+#  - export JOURNAL=$(git journal)
 
 # Once the Rust packages are built, here they are deployed
 deploy:
@@ -53,7 +53,7 @@ deploy:
   # Release name on body
   name: "$TRAVIS_TAG"
   # Body is created by git journal !
-  body: "$JOURNAL"
+#  body: "$JOURNAL"
   on:
     repo: Riduidel/rrss2imap
     tags: true
