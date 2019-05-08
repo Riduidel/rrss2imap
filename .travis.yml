@@ -5,6 +5,12 @@ language: rust
 rust:
 - stable
 cache: cargo
+
+# Don't forget you need git journal on build slaves
+before_install:
+  - cargo install git-journal
+
+# This is th script that will be run on each matrix element
 script:
 - cargo test --verbose --all
 - cargo build --verbose --all --release
@@ -12,6 +18,8 @@ script:
 - mkdir -p target/executable
 - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
 - ls -al target/executable
+
+# All Rust build architectures are defined here
 matrix:
   include:
   - env: TARGET=i686-unknown-linux-gnu
@@ -28,6 +36,12 @@ matrix:
     os: windows
   - env: TARGET=arm-unknown-linux-gnueabi
   - env: TARGET=armv7-unknown-linux-gnueabihf
+
+  # THis script is used to generate the changelog body from comments
+before_deploy:
+  - export JOURNAL=$(git journal)
+
+# Once the Rust packages are built, here they are deployed
 deploy:
   provider: releases
   api_key:
@@ -36,5 +50,12 @@ deploy:
   file: target/executable/*
   skip_cleanup: true
   overwrite: true
+  # This way, the release is not directly visible
+  draft: true
+  # Release name on body
+  name: "$TRAVIS_TAG"
+  # Body is created by git journal !
+  body: "$JOURNAL"
   on:
     repo: Riduidel/rrss2imap
+    tags: true
