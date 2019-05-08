@@ -14,6 +14,11 @@ Goals of this project include
 
 ## Getting Started
 
+### Download rrss2imap
+
+rrss2imap can be downloaded from [**releases page**](https://github.com/Riduidel/rrss2imap/releases). 
+If there is no release for your platform, you can fill an issue ... or if you know Travis, you can even add your platform to `.travis.yml`.
+
 ### As a user
 
 <!-- cargo-sync-readme start -->
