@@ -6,10 +6,6 @@ rust:
 - stable
 cache: cargo
 
-# Don't forget you need git journal on build slaves
-before_install:
-  - cargo install git-journal
-
 # This is th script that will be run on each matrix element
 script:
 - cargo test --verbose --all
@@ -39,7 +35,9 @@ matrix:
 
   # THis script is used to generate the changelog body from comments
 before_deploy:
-  - export JOURNAL=$(git journal)
+  if ! [[ $JOURNAL ]]; then
+    cargo install git-journal && export JOURNAL=$(git journal)
+  fi
 
 # Once the Rust packages are built, here they are deployed
 deploy:
