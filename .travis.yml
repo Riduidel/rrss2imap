@@ -15,7 +15,7 @@ script:
 - mkdir -p target/executable
 - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
 - ls -al target/executable
-- echo $(git journal)
+- git journal
 
 # All Rust build architectures are defined here
 matrix:
