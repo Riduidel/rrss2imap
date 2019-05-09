@@ -10,29 +10,37 @@ cache: cargo
 matrix:
   include:
   - env: TARGET=i686-unknown-linux-gnu
+    os: linux
     addons:
       apt:
         packages:
           - libssl-dev
           - gcc-multilib
+        update: true
   - env: TARGET=x86_64-unknown-linux-gnu
+    os: linux
     addons:
       apt:
         packages:
           - libssl-dev
           - gcc-multilib
+        update: true
   - env: TARGET=i686-unknown-linux-musl
+    os: linux
     addons:
       apt:
         packages:
           - libssl-dev
           - musl-tools
+        update: true
   - env: TARGET=x86_64-unknown-linux-musl
+    os: linux
     addons:
       apt:
         packages:
           - libssl-dev
           - musl-tools
+        update: true
   - env: TARGET=i686-apple-darwin
     os: osx
     osx_image: xcode8
@@ -44,6 +52,7 @@ matrix:
   - env:
     - TARGET=armv7-unknown-linux-gnueabihf
     - LINKER=arm-linux-gnueabihf-gcc
+    os: linux
     addons:
       apt:
         packages: &armhf
@@ -51,8 +60,10 @@ matrix:
           - gcc-arm-linux-gnueabihf
           - libc6-armhf-cross
           - libc6-dev-armhf-cross
+        update: true
 
 install:
+  - export PKG_CONFIG_ALLOW_CROSS=1
   - export PATH="$PATH:$HOME/.cargo/bin"
   - rustup target add $TARGET || true
   - |
@@ -61,6 +72,7 @@ install:
       echo >> ~/.cargo/config
       echo "[target.$TARGET]" >> ~/.cargo/config
       echo "linker = \"$LINKER\"" >> ~/.cargo/config
+      echo "cargo config is now \n" $(cat ~/.cargo/config)
     fi
     
 # This is th script that will be run on each matrix element
