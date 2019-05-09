@@ -13,12 +13,26 @@ matrix:
     addons:
       apt:
         packages:
+          - libssl-dev
           - gcc-multilib
   - env: TARGET=x86_64-unknown-linux-gnu
     addons:
       apt:
         packages:
+          - libssl-dev
           - gcc-multilib
+  - env: TARGET=i686-unknown-linux-musl
+    addons:
+      apt:
+        packages:
+          - libssl-dev
+          - musl-tools
+  - env: TARGET=x86_64-unknown-linux-musl
+    addons:
+      apt:
+        packages:
+          - libssl-dev
+          - musl-tools
   - env: TARGET=i686-apple-darwin
     os: osx
     osx_image: xcode8
@@ -33,6 +47,7 @@ matrix:
     addons:
       apt:
         packages: &armhf
+          - libssl-dev
           - gcc-arm-linux-gnueabihf
           - libc6-armhf-cross
           - libc6-dev-armhf-cross
