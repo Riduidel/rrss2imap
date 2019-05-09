@@ -14,6 +14,7 @@ matrix:
     addons:
       apt:
         packages:
+          - pkg-config
           - libssl-dev
           - gcc-multilib
         update: true
@@ -22,6 +23,7 @@ matrix:
     addons:
       apt:
         packages:
+          - pkg-config
           - libssl-dev
           - gcc-multilib
         update: true
@@ -30,6 +32,7 @@ matrix:
     addons:
       apt:
         packages:
+          - pkg-config
           - libssl-dev
           - musl-tools
         update: true
@@ -38,6 +41,7 @@ matrix:
     addons:
       apt:
         packages:
+          - pkg-config
           - libssl-dev
           - musl-tools
         update: true
@@ -56,6 +60,7 @@ matrix:
     addons:
       apt:
         packages: &armhf
+          - pkg-config
           - libssl-dev
           - gcc-arm-linux-gnueabihf
           - libc6-armhf-cross
