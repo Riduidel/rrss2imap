@@ -6,22 +6,19 @@ rust:
 - stable
 cache: cargo
 
-# This is th script that will be run on each matrix element
-script:
-# - cargo install git-journal
-- cargo test --verbose --all
-- cargo build --verbose --all --release --target $TARGET
-- mkdir -p target/executable
-- cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
-# - git journal
-
 # All Rust build architectures are defined here
 matrix:
   include:
   - env: TARGET=i686-unknown-linux-gnu
-  - env: TARGET=i686-unknown-linux-musl
+    addons:
+      apt:
+        packages:
+          - gcc-multilib
   - env: TARGET=x86_64-unknown-linux-gnu
-  - env: TARGET=x86_64-unknown-linux-musl
+    addons:
+      apt:
+        packages:
+          - gcc-multilib
   - env: TARGET=i686-apple-darwin
     os: osx
     osx_image: xcode8
@@ -30,12 +27,39 @@ matrix:
     osx_image: xcode8
   - env: TARGET=x86_64-pc-windows-msvc
     os: windows
-  - env: TARGET=arm-unknown-linux-gnueabi
-  - env: TARGET=armv7-unknown-linux-gnueabihf
+  - env:
+    - TARGET=armv7-unknown-linux-gnueabihf
+    - LINKER=arm-linux-gnueabihf-gcc
+    addons:
+      apt:
+        packages: &armhf
+          - gcc-arm-linux-gnueabihf
+          - libc6-armhf-cross
+          - libc6-dev-armhf-cross
 
-  # THis script is used to generate the changelog body from comments
-#before_deploy:
-#  - export JOURNAL=$(git journal)
+install:
+  - export PATH="$PATH:$HOME/.cargo/bin"
+  - rustup target add $TARGET || true
+  - |
+    if [ -n "$LINKER" ]; then
+      mkdir -p ~/.cargo
+      echo >> ~/.cargo/config
+      echo "[target.$TARGET]" >> ~/.cargo/config
+      echo "linker = \"$LINKER\"" >> ~/.cargo/config
+    fi
+    
+# This is th script that will be run on each matrix element
+script:
+  - |
+    if [ $TARGET = "x86_64-unknown-linux-gnu" ]; then
+      cargo test
+    fi
+  - cargo build --target $TARGET --verbose --release
+
+before_deploy:
+  - mkdir -p target/executable
+  - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
+
 
 # Once the Rust packages are built, here they are deployed
 deploy:
