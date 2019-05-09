@@ -10,11 +10,9 @@ cache: cargo
 script:
 # - cargo install git-journal
 - cargo test --verbose --all
-- cargo build --verbose --all --release
-- ls -al target
+- cargo build --verbose --all --release --target $TARGET
 - mkdir -p target/executable
 - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
-- ls -al target/executable
 # - git journal
 
 # All Rust build architectures are defined here
