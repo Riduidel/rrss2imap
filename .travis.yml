@@ -9,15 +9,6 @@ cache: cargo
 # All Rust build architectures are defined here
 matrix:
   include:
-  - env: TARGET=i686-unknown-linux-gnu
-    os: linux
-    addons:
-      apt:
-        packages:
-          - pkg-config
-          - libssl-dev
-          - gcc-multilib
-        update: true
   - env: TARGET=x86_64-unknown-linux-gnu
     os: linux
     #  docker run --rm -t -i -v %cd%:/usr/app ubuntu /bin/bash
@@ -28,26 +19,6 @@ matrix:
           - pkg-config
           - libssl-dev
           - gcc-multilib
-        update: true
-    # can be translated to apt update && apt install cargo && apt install pkg-config -y && apt install libssl-dev -y && apt install gcc-multilib -y
-  - env: TARGET=i686-unknown-linux-musl
-    os: linux
-    addons:
-      apt:
-        packages:
-          - pkg-config
-          - libssl-dev
-          - musl-tools
-        update: true
-    # can be translated to apt update && apt install cargo && apt install pkg-config -y && apt install libssl-dev -y && apt install gcc-multilib -y
-  - env: TARGET=x86_64-unknown-linux-musl
-    os: linux
-    addons:
-      apt:
-        packages:
-          - pkg-config
-          - libssl-dev
-          - musl-tools
         update: true
   - env: TARGET=i686-apple-darwin
     os: osx
@@ -78,10 +49,11 @@ install:
   - |
     if [ -n "$LINKER" ]; then
       mkdir -p ~/.cargo
+      rm ~/.cargo/config
       echo >> ~/.cargo/config
       echo "[target.$TARGET]" >> ~/.cargo/config
       echo "linker = \"$LINKER\"" >> ~/.cargo/config
-      echo "cargo config is now \n" $(cat ~/.cargo/config)
+      echo "cargo config is now" $(cat ~/.cargo/config)
     fi
     
 # This is th script that will be run on each matrix element
