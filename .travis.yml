@@ -20,6 +20,8 @@ matrix:
         update: true
   - env: TARGET=x86_64-unknown-linux-gnu
     os: linux
+    #  docker run --rm -t -i -v %cd%:/usr/app ubuntu /bin/bash
+    # apt update && apt install cargo -y && apt install pkg-config -y && apt install libssl-dev -y && apt install gcc-multilib -y
     addons:
       apt:
         packages:
@@ -27,6 +29,7 @@ matrix:
           - libssl-dev
           - gcc-multilib
         update: true
+    # can be translated to apt update && apt install cargo && apt install pkg-config -y && apt install libssl-dev -y && apt install gcc-multilib -y
   - env: TARGET=i686-unknown-linux-musl
     os: linux
     addons:
@@ -36,6 +39,7 @@ matrix:
           - libssl-dev
           - musl-tools
         update: true
+    # can be translated to apt update && apt install cargo && apt install pkg-config -y && apt install libssl-dev -y && apt install gcc-multilib -y
   - env: TARGET=x86_64-unknown-linux-musl
     os: linux
     addons:
@@ -57,6 +61,7 @@ matrix:
     - TARGET=armv7-unknown-linux-gnueabihf
     - LINKER=arm-linux-gnueabihf-gcc
     os: linux
+    # can be translated to apt update && apt install cargo && apt install pkg-config -y && apt install libssl-dev -y && apt install gcc-arm-linux-gnueabihf -y && apt install libc6-armhf-cross -y && apt install libc6-dev-armhf-cross -y
     addons:
       apt:
         packages: &armhf
@@ -68,7 +73,6 @@ matrix:
         update: true
 
 install:
-  - export PKG_CONFIG_ALLOW_CROSS=1
   - export PATH="$PATH:$HOME/.cargo/bin"
   - rustup target add $TARGET || true
   - |
