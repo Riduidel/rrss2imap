@@ -46,15 +46,6 @@ matrix:
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
   - rustup target add $TARGET || true
-  - |
-    if [ -n "$LINKER" ]; then
-      mkdir -p ~/.cargo
-      rm ~/.cargo/config
-      echo >> ~/.cargo/config
-      echo "[target.$TARGET]" >> ~/.cargo/config
-      echo "linker = \"$LINKER\"" >> ~/.cargo/config
-      echo "cargo config is now" $(cat ~/.cargo/config)
-    fi
     
 # This is th script that will be run on each matrix element
 script:
