@@ -1,6 +1,5 @@
-branches:
-  except:
-  - "/^untagged/"
+services:
+  - docker
 language: rust
 rust:
 - stable
@@ -11,49 +10,27 @@ matrix:
   include:
   - env: TARGET=x86_64-unknown-linux-gnu
     os: linux
-    #  docker run --rm -t -i -v %cd%:/usr/app ubuntu /bin/bash
-    # apt update && apt install cargo -y && apt install pkg-config -y && apt install libssl-dev -y && apt install gcc-multilib -y
-    addons:
-      apt:
-        packages:
-          - pkg-config
-          - libssl-dev
-          - gcc-multilib
-        update: true
   - env: TARGET=i686-apple-darwin
-    os: osx
-    osx_image: xcode8
   - env: TARGET=x86_64-apple-darwin
-    os: osx
-    osx_image: xcode8
   - env: TARGET=x86_64-pc-windows-msvc
     os: windows
   - env:
     - TARGET=armv7-unknown-linux-gnueabihf
     - LINKER=arm-linux-gnueabihf-gcc
     os: linux
-    # can be translated to apt update && apt install cargo && apt install pkg-config -y && apt install libssl-dev -y && apt install gcc-arm-linux-gnueabihf -y && apt install libc6-armhf-cross -y && apt install libc6-dev-armhf-cross -y
-    addons:
-      apt:
-        packages: &armhf
-          - pkg-config
-          - libssl-dev
-          - gcc-arm-linux-gnueabihf
-          - libc6-armhf-cross
-          - libc6-dev-armhf-cross
-        update: true
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
   - rustup target add $TARGET || true
+  - cargo install cross
     
 # This is th script that will be run on each matrix element
 script:
   - |
     if [ $TARGET = "x86_64-unknown-linux-gnu" ]; then
-      cargo test
+      cross test
     fi
-  - cargo build --target $TARGET --verbose --release
+  - cross build --target $TARGET --verbose --release
 
 before_deploy:
   - mkdir -p target/executable
@@ -78,3 +55,7 @@ deploy:
   on:
     repo: Riduidel/rrss2imap
     tags: true
+
+branches:
+  except:
+  - "/^untagged/"
