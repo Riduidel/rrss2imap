@@ -9,9 +9,15 @@ cache: cargo
 matrix:
   include:
   - env: TARGET=x86_64-unknown-linux-gnu
+    os: linux
   - env: TARGET=i686-apple-darwin
+    os: osx
+    osx_image: xcode10
   - env: TARGET=x86_64-apple-darwin
+    os: osx
+    osx_image: xcode10
   - env: TARGET=x86_64-pc-windows-msvc
+    os: windows
   - env: TARGET=armv7-unknown-linux-gnueabihf
 
 install:
@@ -23,9 +29,18 @@ install:
 script:
   - |
     if [ $TARGET = "x86_64-unknown-linux-gnu" ]; then
-      cross test
+      cargo test
     fi
-  - cross build --target $TARGET --verbose --release
+  - |
+    if [ $TARGET = "x86_64-pc-windows-msvc" ]; then
+      cargo build --target $TARGET --verbose --release
+    elif [ $TARGET = "i686-apple-darwin" ]; then
+      cargo build --target $TARGET --verbose --release
+    elif [ $TARGET = "x86_64-apple-darwin" ]; then
+      cargo build --target $TARGET --verbose --release
+    else
+      cross build --target $TARGET --verbose --release
+    fi
 
 before_deploy:
   - mkdir -p target/executable
