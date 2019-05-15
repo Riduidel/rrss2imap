@@ -18,10 +18,6 @@ pub struct Feed {
 }
 
 impl Feed {
-    /// Checks if feed has been read at least once.
-    pub fn is_never_read(feed: &Feed)->bool {
-        feed.last_updated<=Feed::at_epoch()
-    }
     /// Creates a new naivedatetime with a default value (which is, to my mind) a sensible default for computers
     pub fn at_epoch() -> NaiveDateTime {
         NaiveDateTime::from_timestamp(0, 0)

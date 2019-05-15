@@ -2,7 +2,6 @@ use chrono::NaiveDateTime;
 
 use super::settings::*;
 use super::feed::*;
-use super::config::*;
 use super::image_to_data;
 
 use std::io::Cursor;
