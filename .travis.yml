@@ -23,7 +23,6 @@ matrix:
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
   - rustup target add $TARGET || true
-  - cargo install cross
     
 # This is th script that will be run on each matrix element
 script:
