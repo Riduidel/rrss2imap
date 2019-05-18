@@ -28,7 +28,8 @@ impl Store {
         let path = Path::new(STORE);
         if path.exists() {
             // First read the file
-            let mut file = File::open(STORE).unwrap_or_else(|_| panic!("Unable to open file {}", STORE));
+            let mut file =
+                File::open(STORE).unwrap_or_else(|_| panic!("Unable to open file {}", STORE));
             let mut contents = String::new();
             file.read_to_string(&mut contents)
                 .unwrap_or_else(|_| panic!("Unable to read file {}", STORE));
@@ -102,7 +103,11 @@ impl Store {
     pub fn run(&mut self) {
         // Initialize mail server before processing feeds
         let mut mail = self.settings.connect();
-        self.feeds = self.feeds.iter().map(|f| f.read(&self.settings, &mut mail)).collect::<Vec<Feed>>();
+        self.feeds = self
+            .feeds
+            .iter()
+            .map(|f| f.read(&self.settings, &mut mail))
+            .collect::<Vec<Feed>>();
         self.save();
     }
 
