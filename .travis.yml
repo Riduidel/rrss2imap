@@ -1,43 +1,50 @@
-branches:
-  except:
-  - "/^untagged/"
+services:
+  - docker
 language: rust
 rust:
 - stable
 cache: cargo
 
-# This is th script that will be run on each matrix element
-script:
-# - cargo install git-journal
-- cargo test --verbose --all
-- cargo build --verbose --all --release
-- ls -al target
-- mkdir -p target/executable
-- cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
-- ls -al target/executable
-# - git journal
-
 # All Rust build architectures are defined here
 matrix:
   include:
-  - env: TARGET=i686-unknown-linux-gnu
-  - env: TARGET=i686-unknown-linux-musl
   - env: TARGET=x86_64-unknown-linux-gnu
-  - env: TARGET=x86_64-unknown-linux-musl
+    os: linux
   - env: TARGET=i686-apple-darwin
     os: osx
-    osx_image: xcode8
+    osx_image: xcode10
   - env: TARGET=x86_64-apple-darwin
     os: osx
-    osx_image: xcode8
+    osx_image: xcode10
   - env: TARGET=x86_64-pc-windows-msvc
     os: windows
-  - env: TARGET=arm-unknown-linux-gnueabi
   - env: TARGET=armv7-unknown-linux-gnueabihf
 
-  # THis script is used to generate the changelog body from comments
-#before_deploy:
-#  - export JOURNAL=$(git journal)
+install:
+  - export PATH="$PATH:$HOME/.cargo/bin"
+  - rustup target add $TARGET || true
+    
+# This is th script that will be run on each matrix element
+script:
+  - |
+    if [ $TARGET = "x86_64-unknown-linux-gnu" ]; then
+      cargo test
+    fi
+  - |
+    if [ $TARGET = "x86_64-pc-windows-msvc" ]; then
+      cargo build --target $TARGET --verbose --release
+    elif [ $TARGET = "i686-apple-darwin" ]; then
+      cargo build --target $TARGET --verbose --release
+    elif [ $TARGET = "x86_64-apple-darwin" ]; then
+      cargo build --target $TARGET --verbose --release
+    else
+      cross build --target $TARGET --verbose --release
+    fi
+
+before_deploy:
+  - mkdir -p target/executable
+  - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
+
 
 # Once the Rust packages are built, here they are deployed
 deploy:
@@ -57,3 +64,7 @@ deploy:
   on:
     repo: Riduidel/rrss2imap
     tags: true
+
+branches:
+  except:
+  - "/^untagged/"

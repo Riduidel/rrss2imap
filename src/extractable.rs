@@ -1,6 +1,5 @@
 use chrono::NaiveDateTime;
 
-use super::config::*;
 use super::feed::*;
 use super::image_to_data;
 use super::settings::*;

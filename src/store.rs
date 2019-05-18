@@ -7,7 +7,6 @@ use std::io::Read;
 
 use serde_json;
 
-use super::config::Config;
 use super::export;
 use super::feed::Feed;
 use super::import;

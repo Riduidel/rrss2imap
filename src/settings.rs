@@ -137,14 +137,14 @@ impl Settings {
     pub fn default_false() -> bool {
         false
     }
-
+/*
     pub fn is_true(value: &bool) -> bool {
         !!value
     }
     pub fn default_true() -> bool {
         true
     }
-
+*/
     pub fn default() -> Settings {
         Settings {
             do_not_save: false,
