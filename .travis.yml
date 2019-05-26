@@ -19,6 +19,11 @@ matrix:
   - env: TARGET=x86_64-pc-windows-msvc
     os: windows
   - env: TARGET=armv7-unknown-linux-gnueabihf
+    os: linux
+    addons:
+      apt:
+        packages:
+        - gcc-arm-linux-gnueabihf
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
