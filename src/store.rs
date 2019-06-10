@@ -12,12 +12,17 @@ use super::feed::Feed;
 use super::import;
 use super::settings::Settings;
 
+/// Main application structure.
+/// This structure is read/written from/to a JSON file
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Store {
+    /// Contains all application settings
     pub settings: Settings,
+    /// Contains all feeds being read
     pub feeds: Vec<Feed>,
 }
 
+/// Name of the file from which config is read/written. As of today, this name is not expected to change.
 const STORE: &str = "config.json";
 
 impl Store {
@@ -58,6 +63,8 @@ impl Store {
         self.save();
     }
 
+    /// Exports config into an OPML file
+    /// see [export](rrss2imap::export::export) for implementation details
     pub fn export(&self, file: Option<PathBuf>) {
         let path_to_write = file.expect("Can't expport file if no file is given");
         warn!("exporting content to {:?}", path_to_write);
@@ -66,6 +73,7 @@ impl Store {
     }
 
     /// Import rss feeds provided as an opml file
+    /// see [import](rrss2imap::import::import) for implementation details
     pub fn import(&mut self, file: Option<PathBuf>) {
         let path_to_read = file.expect("Can't import file if no file is given");
         warn!("importing content from {:?}", path_to_read);
@@ -79,7 +87,7 @@ impl Store {
         );
     }
 
-    // Add a feed to the feeds list and immediatly save the store
+    /// Add a feed to the feeds list and immediatly save the store.
     pub fn add(&mut self, parameters: Vec<String>) {
         info!("adding \"{:?}\"", parameters);
         let to_add = Feed::from(parameters);
@@ -87,12 +95,15 @@ impl Store {
         self.save();
     }
 
+    /// Delete the feed which id is given as parameter.
+    /// The use of a number is a compatibility requirement
     pub fn delete(&mut self, feed: u32) {
         let f = self.feeds.remove(feed as usize);
         self.save();
         info!("Removed {:?}", f);
     }
 
+    /// Reset the config file by removing all feeds and config
     pub fn reset(&mut self) {
         self.feeds.clear();
         self.settings.config.clear();
@@ -100,6 +111,9 @@ impl Store {
         info!("store have been cleared to contain only {:?}", self);
     }
 
+    /// Run all rss to imap transformation
+    /// Each feed is read and immediatly written in this thread.
+    /// This should be rewritten to allow optimization/parallelism
     pub fn run(&mut self) {
         // Initialize mail server before processing feeds
         let mut mail = self.settings.connect();
@@ -111,6 +125,9 @@ impl Store {
         self.save();
     }
 
+    /// Prints all the feeds to stdout.
+    /// This is done in a way compatible with rss2imap original layout.
+    /// As a consequence, new elements (like image inlining) are not visible
     pub fn list(&self) {
         let lines: Vec<String> = self
             .feeds
@@ -121,6 +138,7 @@ impl Store {
         println!("{}", &lines.join("\n"));
     }
 
+    /// If the feed url is not already in the store, adds it
     pub fn add_feed(&mut self, to_add: Feed) {
         // We never add the same feed twice. To ensure that, we check that no feed has the same url
         let tested = self.feeds.clone();

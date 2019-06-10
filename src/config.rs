@@ -5,10 +5,13 @@ use super::settings::*;
 /// Obviously, all elements which are not defined at feed level use global configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
+    /// When set, contains the email address used
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
+    /// When set, contains the folder in which entries for feed will be written
     #[serde(skip_serializing_if = "Option::is_none")]
     pub folder: Option<String>,
+    /// When set to true, images will be inlined
     #[serde(
         skip_serializing_if = "Settings::is_false",
         default = "Settings::default_false"
@@ -17,6 +20,7 @@ pub struct Config {
 }
 
 impl Config {
+    /// Creates a new instance with all fields set to default "falsy" values : options are set to none and booleans to false
     pub fn new() -> Config {
         Config {
             email: None,
@@ -25,6 +29,9 @@ impl Config {
         }
     }
 
+    /// Creates a string view of config.
+    /// More precisely, outputs the email address and folder in which entries are to be written
+    /// A default config is given for options set to None.
     pub fn to_string(self, default: &Config) -> String {
         return format!(
             "(to: {}) {}",
@@ -50,12 +57,14 @@ impl Config {
         self.folder = None;
     }
 
+    /// Get the email value for that feed, be it defined locally or from the default config
     pub fn get_email(&self, default: &Config) -> String {
         self.clone()
             .email
             .unwrap_or_else(|| default.clone().email.unwrap_or_else(|| "".to_owned()))
     }
 
+    /// Get the folder value for that feed, be it defined locally or from the default config
     pub fn get_folder(&self, default: &Config) -> String {
         self.clone()
             .folder

@@ -17,19 +17,27 @@ pub enum Secure {
 /// So I should implement a kind of secure storage
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Email {
+    /// imap server we want to connect to
     server: String,
+    /// username used to connect to that server
     user: String,
+    /// password used to connect to that server.
+    /// **WARNING** THis password is in **no way** encrypted, which makes rrss2imap a "not-so-secured" software
     password: String,
+    /// secured connection state
     #[serde(default = "Email::default_secure")]
     secure: Secure,
 }
 
+/// Imap effective connection type (ie once connection has been established).
+/// This enum presents a simple interface allowing seamless access for (un)secured servers.
 pub enum Imap {
     Secured(Session<native_tls::TlsStream<std::net::TcpStream>>),
     Insecured(Session<std::net::TcpStream>),
 }
 
 impl Imap {
+    /// Appends a new message to the given server.
     pub fn append<S: AsRef<str>, B: AsRef<[u8]>>(&mut self, mailbox: S, content: B) -> Result<()> {
         match self {
             Imap::Secured(ref mut session) => session.append(mailbox, content),
@@ -39,9 +47,11 @@ impl Imap {
 }
 
 impl Email {
+    /// default secure port, used by serde
     pub fn default_secure() -> Secure {
         Secure::Yes(993)
     }
+    /// Constructs a default email config, used in Settings by serde
     pub fn default() -> Email {
         Email {
             server: "Set your email server address here".to_owned(),
@@ -51,6 +61,7 @@ impl Email {
         }
     }
 
+    /// starts connection to selected imap server, whatever it is
     pub fn start(&self) -> Imap {
         match self.secure {
             Secure::Yes(port) => self.start_secure(port),
@@ -58,7 +69,7 @@ impl Email {
         }
     }
 
-    pub fn start_insecure(&self, port: u16) -> Imap {
+    fn start_insecure(&self, port: u16) -> Imap {
         // we pass in the domain twice to check that the server's TLS
         // certificate is valid for the domain we're connecting to.
         let client = imap::connect_insecure((self.server.as_str(), port))
@@ -82,7 +93,7 @@ impl Email {
         Imap::Insecured(imap_session)
     }
 
-    pub fn start_secure(&self, port: u16) -> Imap {
+    fn start_secure(&self, port: u16) -> Imap {
         let tls = native_tls::TlsConnector::builder()
             .build()
             .expect("Couldn't create TLS connector");
@@ -114,17 +125,20 @@ impl Email {
 /// Store-level config
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Settings {
+    /// when set to true, no reading statis will be persisted.
+    /// As a consequence, messages may be read more than once
     #[serde(
         skip_serializing_if = "Settings::is_false",
         default = "Settings::default_false"
     )]
     pub do_not_save: bool,
-    #[serde(
+    /// inline all images as base64 data
+/*    #[serde(
         skip_serializing_if = "Settings::is_false",
         default = "Settings::default_false"
     )]
     pub inline_image_as_data: bool,
-    #[serde(default = "Email::default")]
+*/    #[serde(default = "Email::default")]
     pub email: Email,
     #[serde(default = )]
     pub config: Config,
@@ -148,7 +162,6 @@ impl Settings {
     pub fn default() -> Settings {
         Settings {
             do_not_save: false,
-            inline_image_as_data: false,
             email: Email::default(),
             config: Config::new(),
         }
