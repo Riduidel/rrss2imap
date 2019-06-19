@@ -2,11 +2,14 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 
 use super::config::*;
 
-use super::extractable::*;
+use super::message::*;
 use super::settings::*;
 use super::syndication;
 use atom_syndication::Feed as AtomFeed;
-use rss::Channel;
+use atom_syndication::Entry as AtomEntry;
+use rss::Channel as RssChannel;
+use rss::Item as RssItem;
+use url::Url;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
@@ -102,8 +105,9 @@ impl Feed {
             info!("There should be new entries, parsing HTML content");
             feed.entries()
                 .iter()
-                .filter(|e| e.last_date() >= self.last_updated)
-                .for_each(|e| e.write_to_imap(&self, &feed, settings, email));
+                .map(|e| extract_from_atom(e, &feed))
+                .filter(|e| e.last_date >= self.last_updated)
+                .for_each(|e| e.write_to_imap(&self, settings, email));
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
@@ -117,7 +121,7 @@ impl Feed {
         self.clone()
     }
 
-    fn read_rss(&self, feed: Channel, settings: &Settings, email: &mut Imap) -> Feed {
+    fn read_rss(&self, feed: RssChannel, settings: &Settings, email: &mut Imap) -> Feed {
         debug!("reading RSS feed {}", &self.url);
         let n = Utc::now();
         let feed_date_text = match feed.pub_date() {
@@ -138,8 +142,9 @@ impl Feed {
             info!("There should be new entries, parsing HTML content");
             feed.items()
                 .iter()
-                .filter(|e| e.last_date() >= self.last_updated)
-                .for_each(|e| e.write_to_imap(&self, &feed, settings, email));
+                .map(|e| extract_from_rss(e, &feed))
+                .filter(|e| e.last_date >= self.last_updated)
+                .for_each(|e| e.write_to_imap(&self, settings, email));
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
@@ -152,4 +157,148 @@ impl Feed {
         }
         self.clone()
     }
+
+}
+
+fn extract_authors_from_rss(entry:&RssItem, feed:&RssChannel) -> Vec<String> {
+    let domain = find_rss_domain(feed);
+        // This is where we also transform author names into urls in order
+    // to have valid email addresses everywhere
+    let mut message_authors: Vec<String>;
+    match entry.author() {
+        Some(l) => message_authors = vec![l.to_owned()],
+        _ => message_authors = vec![feed.title().to_owned()],
+    }
+    message_authors = message_authors
+        .iter()
+        .map(|author| (author, author.replace(" ", "_")))
+        .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
+        .collect();
+    message_authors
+}
+fn find_rss_domain(feed: &RssChannel) -> String {
+    return Some(feed.link())
+        .map(|href| Url::parse(href).unwrap())
+        // then get host
+        .map(|url| url.host_str().unwrap().to_string())
+        // and return value
+        .unwrap_or("todo.find.domain.atom".to_string());
+}
+
+fn extract_from_rss(entry:&RssItem, feed:&RssChannel) -> Message {
+    let authors = extract_authors_from_rss(entry, feed);
+    let content = entry
+        .content()
+        .unwrap_or_else(|| entry.description().unwrap_or(""))
+    // First step is to fix HTML, so load it using html5ever
+    // (because there is no better html parser than a real browser one)
+    // TODO implement image inlining
+        .to_owned();
+    let id = match entry.guid() {
+        Some(g) => g.value().to_owned(),
+        _ => "no id".to_owned(),
+    };
+    let last_date = extract_date_from_rss(entry);
+    let message = Message {
+        authors: authors,
+        content: content,
+        id: id,
+        last_date: last_date,
+        links: match entry.link() {
+            Some(l) => vec![l.to_owned()],
+            _ => vec![],
+        },
+        title: entry.title().unwrap_or("").to_owned()
+    };
+    return message
+}
+
+fn extract_date_from_rss(entry:&RssItem) -> NaiveDateTime {
+    if entry.pub_date().is_some() {
+        let pub_date = str::replace(entry.pub_date().unwrap(), "-0000", "+0000");
+        return DateTime::parse_from_rfc2822(&pub_date)
+            .unwrap_or_else(|e| {
+                panic!(
+                    "pub_date for item {:?} (value is {:?}) can't be parsed. {:?}",
+                    &entry, pub_date, e
+                )
+            })
+            .naive_utc();
+    } else if entry.dublin_core_ext().is_some()
+        && entry.dublin_core_ext().unwrap().dates().len() > 0
+    {
+        let pub_date = &entry.dublin_core_ext().unwrap().dates()[0];
+        return DateTime::parse_from_rfc3339(&pub_date)
+            .unwrap_or_else(|e| {
+                panic!(
+                    "dc:pub_date for item {:?} (value is {:?}) can't be parsed. {:?}",
+                    &entry, pub_date, e
+                )
+            })
+            .naive_utc();
+    } else {
+        panic!("feed item {:?} can't be parsed, as it doesn't have neither pub_date nor dc:pub_date", &entry);
+    }
+}
+
+fn extract_authors_from_atom(entry:&AtomEntry, feed:&AtomFeed) -> Vec<String> {
+    let domain = find_atom_domain(feed);
+    // This is where we also transform author names into urls in order
+    // to have valid email addresses everywhere
+    let mut message_authors: Vec<String> = entry
+        .authors()
+        .iter()
+        .map(|a| a.name().to_owned())
+        .collect();
+    if message_authors.is_empty() {
+        message_authors = vec![feed.title().to_owned()]
+    }
+    message_authors = message_authors
+        .iter()
+        .map(|author| (author, author.replace(" ", "_")))
+        .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
+        .collect();
+    message_authors        
+}
+
+fn find_atom_domain(feed: &AtomFeed) -> String {
+    return feed
+        .links()
+        .iter()
+        .filter(|link| link.rel() == "self" || link.rel() == "alternate")
+        .next()
+        // Get the link
+        .map(|link| link.href())
+        // Transform it into an url
+        .map(|href| Url::parse(href).unwrap())
+        // then get host
+        .map(|url| url.host_str().unwrap().to_string())
+        // and return value
+        .unwrap_or("todo.find.domain.rss".to_string());
+}
+
+fn extract_from_atom(entry:&AtomEntry, feed:&AtomFeed) -> Message {
+    let authors = extract_authors_from_atom(entry, feed);
+    let last_date = entry.updated().parse::<DateTime<Utc>>().unwrap().naive_utc();
+    let content = match entry.content() {
+            Some(content) => content.value().unwrap(),
+            None => match entry.summary() {
+                Some(summary) => summary,
+                None => "",
+            },
+        }
+        .to_owned();
+    let message = Message {
+        authors: authors,
+        content: content,
+        id: entry.id().to_owned(),
+        last_date: last_date,
+        links: entry
+            .links()
+            .iter()
+            .map(|l| l.href().to_owned())
+            .collect(),
+        title: entry.title().to_owned()
+    };
+    return message
 }

@@ -155,13 +155,11 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 mod config;
-mod entry;
 mod export;
-mod extractable;
 mod feed;
+mod message;
 mod image_to_data;
 mod import;
-mod item;
 mod settings;
 mod store;
 mod syndication;
