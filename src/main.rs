@@ -231,7 +231,8 @@ fn main() {
         setup_panic!();
     }
     // Configure logger
-    Logger::with_env()
+
+    Logger::with_str("warn, rrss2imap = info")
         .start()
         .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e));
 
