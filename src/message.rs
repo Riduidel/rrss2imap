@@ -34,6 +34,7 @@ impl Message {
     pub fn write_to_imap(&self, feed:&Feed, settings:&Settings, email:&mut Imap) {
         let folder = feed.config.get_folder(&settings.config);
         let content = self.build_message(feed, settings);
+        debug!("===========================\nWriting message content to IMAP\n{}\n===========================", content);
         match email.append(&folder, content) {
             Ok(_) => debug!("Successfully written {}", self.title),
             Err(e) => error!(
@@ -57,6 +58,7 @@ impl Message {
     fn build_message(&self, feed: &Feed, settings: &Settings) -> String {
         let mut context = self.build_context(feed, settings);
         let content = self.extract_content(feed, settings);
+        debug!("===========================\nCreating message content\n{}\n===========================", content);
         context.insert("message_body", &base64::encode(&content));
         context.insert("charset", &self.get_charset(&content, settings));
         TERA.render("message.enveloppe", &context).unwrap()
