@@ -19,7 +19,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 log = "0.4"
-flexi_logger = "0.11"
+flexi_logger = "0.13"
 # Used for parsing command line args
 structopt = "0.2"
 # Used for reading/writing config file
@@ -30,7 +30,7 @@ serde_json = "1.0"
 treexml = "0.7"
 # Used to get feed entries (and images, when it will be possible)
 atom_syndication = "0.6"
-rss = "1.7"
+rss = "1.8"
 chrono = { version = "0.4", features = ["serde"] }
 # A good html parser to allow generation of valid mail messages
 # kuchiki is in fact a layer over html5ever, which adds easier tree traversal/transformation
