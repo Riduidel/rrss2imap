@@ -1,5 +1,5 @@
 MIME-Version: 1.0
-User-Agent: rss2email
+User-Agent: rrss2imap
 Content-Transfer-Encoding: base64
 To: {{to}}
 Subject: {{title}}
