@@ -233,6 +233,7 @@ fn main() {
     // Configure logger
 
     Logger::with_str("warn, rrss2imap = info")
+        .format(flexi_logger::colored_detailed_format)
         .start()
         .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e));
 
