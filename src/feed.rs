@@ -84,11 +84,11 @@ impl Feed {
                             }
                         }
                     }
-                    Err(e) => error!("Content ar {} is neither Atom, nor RSS {}", &self.url, e),
+                    Err(e) => error!("Content ar {} is neither Atom, nor RSS {}.\nTODO check real content type to help user.", &self.url, e),
                 },
                 None => error!("There is no text at {}", &self.url),
             },
-            Err(e) => error!("Unable to get {} due to {}", &self.url, e),
+            Err(e) => error!("Unable to get {} due to {}.\nTODO Add better http response analysis !", &self.url, e),
         }
         self.clone()
     }
