@@ -1,3 +1,4 @@
+use std::{thread, time};
 use imap::error::Result;
 use imap::Session;
 
