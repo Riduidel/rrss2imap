@@ -116,11 +116,10 @@ impl Store {
     /// This should be rewritten to allow optimization/parallelism
     pub fn run(&mut self) {
         // Initialize mail server before processing feeds
-        let mut mail = self.settings.connect();
         self.feeds = self
             .feeds
             .iter()
-            .map(|f| f.read(&self.settings, &mut mail))
+            .map(|f| f.read(&self.settings))
             .collect::<Vec<Feed>>();
         self.save();
     }

@@ -31,11 +31,11 @@ pub struct Message {
 }
 
 impl Message {
-    pub fn write_to_imap(&self, feed:&Feed, settings:&Settings, email:&mut Imap) {
+    pub fn write_to_imap(&self, feed:&Feed, settings:&Settings) {
         let folder = feed.config.get_folder(&settings.config);
         let content = self.build_message(feed, settings);
         debug!("===========================\nWriting message content to IMAP\n{}\n===========================", content);
-        match email.append(&folder, content) {
+        match settings.email.append(&folder, &content) {
             Ok(_) => debug!("Successfully written {}", self.title),
             Err(e) => error!(
                 "{}\nUnable to select mailbox {}. Item titled {} won't be written",

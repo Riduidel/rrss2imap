@@ -69,7 +69,7 @@ impl Feed {
         return format!("{} {}", self.url, self.config.clone().to_string(config));
     }
 
-    pub fn read(&self, settings: &Settings, email: &mut Imap) -> Feed {
+    pub fn read(&self, settings: &Settings) -> Feed {
         info!("Reading feed from {}", self.url);
         match requests::get(&self.url) {
             Ok(response) => match response.text() {
@@ -77,10 +77,10 @@ impl Feed {
                     Ok(parsed) => {
                         return match parsed {
                             syndication::Feed::Atom(atom_feed) => {
-                                self.read_atom(atom_feed, settings, email)
+                                self.read_atom(atom_feed, settings)
                             }
                             syndication::Feed::RSS(rss_feed) => {
-                                self.read_rss(rss_feed, settings, email)
+                                self.read_rss(rss_feed, settings)
                             }
                         }
                     }
@@ -93,7 +93,7 @@ impl Feed {
         self.clone()
     }
 
-    fn read_atom(&self, feed: AtomFeed, settings: &Settings, email: &mut Imap) -> Feed {
+    fn read_atom(&self, feed: AtomFeed, settings: &Settings) -> Feed {
         debug!("reading ATOM feed {}", &self.url);
         let feed_date_text = feed.updated();
         let feed_date = feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc();
@@ -107,7 +107,7 @@ impl Feed {
                 .iter()
                 .map(|e| extract_from_atom(e, &feed))
                 .filter(|e| e.last_date >= self.last_updated)
-                .for_each(|e| e.write_to_imap(&self, settings, email));
+                .for_each(|e| e.write_to_imap(&self, settings));
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
@@ -121,7 +121,7 @@ impl Feed {
         self.clone()
     }
 
-    fn read_rss(&self, feed: RssChannel, settings: &Settings, email: &mut Imap) -> Feed {
+    fn read_rss(&self, feed: RssChannel, settings: &Settings) -> Feed {
         debug!("reading RSS feed {}", &self.url);
         let n = Utc::now();
         let feed_date_text = match feed.pub_date() {
@@ -144,7 +144,7 @@ impl Feed {
                 .iter()
                 .map(|e| extract_from_rss(e, &feed))
                 .filter(|e| e.last_date >= self.last_updated)
-                .for_each(|e| e.write_to_imap(&self, settings, email));
+                .for_each(|e| e.write_to_imap(&self, settings));
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),

@@ -15,7 +15,7 @@ pub enum Secure {
 /// But as code isn't expected to run on any kind of UI-aware machine (but on a headless Raspbian),
 /// I can't connect it to Keepass.
 /// So I should implement a kind of secure storage
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Email {
     /// imap server we want to connect to
     server: String,
@@ -27,10 +27,15 @@ pub struct Email {
     /// secured connection state
     #[serde(default = "Email::default_secure")]
     secure: Secure,
+    #[serde(default = "Email::default_retry_max_count")]
+    retry_max_count:u8,
+    #[serde(default = "Email::default_retry_delay")]
+    retry_delay:u64
 }
 
 /// Imap effective connection type (ie once connection has been established).
 /// This enum presents a simple interface allowing seamless access for (un)secured servers.
+#[derive(Debug)]
 pub enum Imap {
     Secured(Session<native_tls::TlsStream<std::net::TcpStream>>),
     Insecured(Session<std::net::TcpStream>),
@@ -47,9 +52,43 @@ impl Imap {
 }
 
 impl Email {
+    /// Appends a new message to the given server.
+    /// This method decorates the Imap::append method by adding retry ability.
+    pub fn append<S: AsRef<str>, B: AsRef<[u8]>>(&self, mailbox: &S, content: &B) -> Result<()> {
+        let mut count = 0;
+        loop {
+            count = count+1;
+            let mut imap = self.start();
+            let result = imap.append(mailbox, content);
+            if result.is_err() {
+                if count>self.retry_max_count {
+                    return result;
+                } else {
+                    error!("Previous append attempt failed with {}. Retrying ({}/{})in {} s.!", 
+                        result.unwrap_err(), 
+                        count,
+                        self.retry_max_count,
+                        self.retry_delay);
+                    // TODO maybe remove that once code is parallel
+                    thread::sleep(time::Duration::from_secs(self.retry_delay));
+                }
+            } else {
+                return result;
+            }
+        }
+    }
+
     /// default secure port, used by serde
     pub fn default_secure() -> Secure {
         Secure::Yes(993)
+    }
+    /// default max retries number, used by serde
+    pub fn default_retry_max_count() -> u8 {
+        3
+    }
+    /// default retry delay, used by serde
+    pub fn default_retry_delay() -> u64 {
+        1
     }
     /// Constructs a default email config, used in Settings by serde
     pub fn default() -> Email {
@@ -57,7 +96,9 @@ impl Email {
             server: "Set your email server address here".to_owned(),
             user: "Set your imap server user name (it may be your email address or not)".to_owned(),
             password: "Set your imap server password (yup, in clear, this is very bad)".to_owned(),
-            secure: Secure::Yes(993),
+            secure: Email::default_secure(),
+            retry_max_count: Email::default_retry_max_count(),
+            retry_delay: Email::default_retry_delay()
         }
     }
 
@@ -86,7 +127,7 @@ impl Email {
                 )
             });
 
-        info!(
+        debug!(
             "Successfully connected to INSECURE imap server {}",
             self.server
         );
@@ -114,7 +155,7 @@ impl Email {
                 )
             });
 
-        info!(
+        debug!(
             "Successfully connected to SECURE imap server {}",
             self.server
         );
@@ -123,7 +164,7 @@ impl Email {
 }
 
 /// Store-level config
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Settings {
     /// when set to true, no reading statis will be persisted.
     /// As a consequence, messages may be read more than once
@@ -165,9 +206,5 @@ impl Settings {
             email: Email::default(),
             config: Config::new(),
         }
-    }
-
-    pub fn connect(&self) -> Imap {
-        self.email.start()
     }
 }
