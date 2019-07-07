@@ -150,6 +150,8 @@ extern crate url;
 
 extern crate tree_magic;
 
+extern crate quoted_printable;
+
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;

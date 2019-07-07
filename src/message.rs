@@ -1,5 +1,6 @@
 use chrono::NaiveDateTime;
 
+use quoted_printable::encode_to_str;
 use super::feed::Feed;
 use super::settings::*;
 use super::image_to_data;
@@ -108,7 +109,7 @@ impl Message {
         context.insert("feed_entry", &self.get_processed_content(feed, settings));
         context.insert("links", &self.links);
         context.insert("id", &self.id);
-        context.insert("title", &self.title);
+        context.insert("title", &encode_to_str(&self.title));
         context.insert("from", &self.authors);
         context.insert("to", &feed.config.get_email(&settings.config));
         context.insert(
