@@ -101,7 +101,7 @@ impl Feed {
             "Feed date is {} while previous read date is {}",
             feed_date, self.last_updated
         );
-        if feed_date >= self.last_updated {
+        if feed_date > self.last_updated {
             info!("There should be new entries, parsing HTML content");
             feed.entries()
                 .iter()
@@ -138,7 +138,7 @@ impl Feed {
             "Feed date is {} while previous read date is {}",
             feed_date, self.last_updated
         );
-        if feed_date >= self.last_updated {
+        if feed_date > self.last_updated {
             info!("There should be new entries, parsing HTML content");
             feed.items()
                 .iter()
