@@ -4,11 +4,16 @@ use quoted_printable::encode_to_str;
 use super::feed::Feed;
 use super::settings::*;
 use super::image_to_data;
-use std::io::Cursor;
 use tera::Context;
 use tera::Tera;
 
 use kuchiki::traits::*;
+
+use emailmessage::{
+    header,
+    SinglePart,
+    Message as Email
+};
 
 lazy_static! {
     pub static ref TERA: Tera = {
@@ -47,22 +52,35 @@ impl Message {
         }
     }
 
-    fn get_charset(&self, text: &String, _settings: &Settings) -> String {
-        let mut text_cursor = Cursor::new(text.clone().into_bytes());
-        let detected_charsets = xhtmlchardet::detect(&mut text_cursor, None);
-        match detected_charsets {
-            Ok(charsets) => (&charsets[0]).to_owned(),
-            Err(_) => "UTF-8".to_owned(),
-        }
-    }
-
     fn build_message(&self, feed: &Feed, settings: &Settings) -> String {
-        let mut context = self.build_context(feed, settings);
         let content = self.extract_content(feed, settings);
         debug!("===========================\nCreating message content\n{}\n===========================", content);
-        context.insert("message_body", &base64::encode(&content));
-        context.insert("charset", &self.get_charset(&content, settings));
-        TERA.render("message.enveloppe", &context).unwrap()
+        let mut builder = Email::builder()
+            .subject(&*self.title)
+            .date(self.date_text().parse().expect(&format!("Unable to parse date text {}", self.date_text())));
+        
+        match &feed.config.from {
+            Some(from) => {
+                builder = builder.from(from.parse().unwrap());
+            },
+            None => {
+                if  let Some(first_author) = self.authors.get(0) {
+                    builder = builder.from(first_author.parse()
+                        .expect(&format!("Unable to parse first author {} due to ", first_author)));
+                }
+            }
+        }
+        
+        let email:Email<SinglePart<String>> = builder
+                .mime_body(
+                    SinglePart::builder()
+                        .header(header::ContentType(
+                            "text/html; charset=utf8".parse().unwrap(),
+                        ))
+                        .header(header::ContentTransferEncoding::QuotedPrintable)
+                        .body(content)
+                );
+        email.to_string()
     }
 
 
@@ -109,16 +127,20 @@ impl Message {
         context.insert("feed_entry", &self.get_processed_content(feed, settings));
         context.insert("links", &self.links);
         context.insert("id", &self.id);
-        context.insert("title", &encode_to_str(&self.title));
+        context.insert("title", &self.title);
         context.insert("from", &self.authors);
         context.insert("to", &feed.config.get_email(&settings.config));
         context.insert(
             "date",
-            &self
-                .last_date
-                .format("%a, %d %b %Y %H:%M:%S -0000")
-                .to_string(),
+            &self.date_text(),
         );
         context
+    }
+
+    fn date_text(&self) -> String {
+        self
+            .last_date
+            .format("%a, %d %b %Y %H:%M:%S -0000")
+            .to_string()
     }
 }

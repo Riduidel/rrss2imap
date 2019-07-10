@@ -59,6 +59,7 @@ impl Feed {
             config: Config {
                 email,
                 folder,
+                from: None,
                 inline_image_as_data: false,
             },
             last_updated: Feed::at_epoch(),

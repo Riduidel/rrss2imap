@@ -49,6 +49,7 @@ xhtmlchardet = "2.0"
 human-panic = "1.0"
 url = "1.7"
 tree_magic = "0.2"
+emailmessage = "0.2"
 
 [dev-dependencies]
 assert_cli = "0.6"
