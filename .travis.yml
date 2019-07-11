@@ -28,6 +28,13 @@ matrix:
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
   - rustup target add $TARGET || true
+  - |
+    if [ $TARGET = "x86_64-pc-windows-msvc" ]; then
+    elif [ $TARGET = "i686-apple-darwin" ]; then
+    elif [ $TARGET = "x86_64-apple-darwin" ]; then
+    else
+      cargo install cross
+    fi
     
 # This is th script that will be run on each matrix element
 script:
