@@ -3,7 +3,6 @@ use chrono::NaiveDateTime;
 use super::feed::Feed;
 use super::image_to_data;
 use super::settings::*;
-use quoted_printable::encode_to_str;
 use tera::Context;
 use tera::Tera;
 
