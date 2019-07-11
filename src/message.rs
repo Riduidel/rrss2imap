@@ -66,7 +66,9 @@ impl Message {
             None => {
                 if  let Some(first_author) = self.authors.get(0) {
                     builder = builder.from(first_author.parse()
-                        .expect(&format!("Unable to parse first author {} due to ", first_author)));
+                        .expect(&format!(r##"Unable to parse first author {}.
+Please consider adding in feed config the \"from\": ... field
+Initial error is"##, first_author)));
                 }
             }
         }
