@@ -5,8 +5,8 @@ use super::config::*;
 use super::message::*;
 use super::settings::*;
 use super::syndication;
-use atom_syndication::Feed as AtomFeed;
 use atom_syndication::Entry as AtomEntry;
+use atom_syndication::Feed as AtomFeed;
 use rss::Channel as RssChannel;
 use rss::Item as RssItem;
 use url::Url;
@@ -158,12 +158,11 @@ impl Feed {
         }
         self.clone()
     }
-
 }
 
-fn extract_authors_from_rss(entry:&RssItem, feed:&RssChannel) -> Vec<String> {
+fn extract_authors_from_rss(entry: &RssItem, feed: &RssChannel) -> Vec<String> {
     let domain = find_rss_domain(feed);
-        // This is where we also transform author names into urls in order
+    // This is where we also transform author names into urls in order
     // to have valid email addresses everywhere
     let mut message_authors: Vec<String>;
     match entry.author() {
@@ -186,14 +185,14 @@ fn find_rss_domain(feed: &RssChannel) -> String {
         .unwrap_or("todo.find.domain.atom".to_string());
 }
 
-fn extract_from_rss(entry:&RssItem, feed:&RssChannel) -> Message {
+fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
     let authors = extract_authors_from_rss(entry, feed);
     let content = entry
         .content()
         .unwrap_or_else(|| entry.description().unwrap_or(""))
-    // First step is to fix HTML, so load it using html5ever
-    // (because there is no better html parser than a real browser one)
-    // TODO implement image inlining
+        // First step is to fix HTML, so load it using html5ever
+        // (because there is no better html parser than a real browser one)
+        // TODO implement image inlining
         .to_owned();
     let id = match entry.guid() {
         Some(g) => g.value().to_owned(),
@@ -209,12 +208,12 @@ fn extract_from_rss(entry:&RssItem, feed:&RssChannel) -> Message {
             Some(l) => vec![l.to_owned()],
             _ => vec![],
         },
-        title: entry.title().unwrap_or("").to_owned()
+        title: entry.title().unwrap_or("").to_owned(),
     };
-    return message
+    return message;
 }
 
-fn extract_date_from_rss(entry:&RssItem) -> NaiveDateTime {
+fn extract_date_from_rss(entry: &RssItem) -> NaiveDateTime {
     if entry.pub_date().is_some() {
         let pub_date = str::replace(entry.pub_date().unwrap(), "-0000", "+0000");
         return DateTime::parse_from_rfc2822(&pub_date)
@@ -238,11 +237,14 @@ fn extract_date_from_rss(entry:&RssItem) -> NaiveDateTime {
             })
             .naive_utc();
     } else {
-        panic!("feed item {:?} can't be parsed, as it doesn't have neither pub_date nor dc:pub_date", &entry);
+        panic!(
+            "feed item {:?} can't be parsed, as it doesn't have neither pub_date nor dc:pub_date",
+            &entry
+        );
     }
 }
 
-fn extract_authors_from_atom(entry:&AtomEntry, feed:&AtomFeed) -> Vec<String> {
+fn extract_authors_from_atom(entry: &AtomEntry, feed: &AtomFeed) -> Vec<String> {
     let domain = find_atom_domain(feed);
     // This is where we also transform author names into urls in order
     // to have valid email addresses everywhere
@@ -259,7 +261,7 @@ fn extract_authors_from_atom(entry:&AtomEntry, feed:&AtomFeed) -> Vec<String> {
         .map(|author| (author, author.replace(" ", "_")))
         .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
         .collect();
-    message_authors        
+    message_authors
 }
 
 fn find_atom_domain(feed: &AtomFeed) -> String {
@@ -278,28 +280,28 @@ fn find_atom_domain(feed: &AtomFeed) -> String {
         .unwrap_or("todo.find.domain.rss".to_string());
 }
 
-fn extract_from_atom(entry:&AtomEntry, feed:&AtomFeed) -> Message {
+fn extract_from_atom(entry: &AtomEntry, feed: &AtomFeed) -> Message {
     let authors = extract_authors_from_atom(entry, feed);
-    let last_date = entry.updated().parse::<DateTime<Utc>>().unwrap().naive_utc();
+    let last_date = entry
+        .updated()
+        .parse::<DateTime<Utc>>()
+        .unwrap()
+        .naive_utc();
     let content = match entry.content() {
-            Some(content) => content.value().unwrap(),
-            None => match entry.summary() {
-                Some(summary) => summary,
-                None => "",
-            },
-        }
-        .to_owned();
+        Some(content) => content.value().unwrap(),
+        None => match entry.summary() {
+            Some(summary) => summary,
+            None => "",
+        },
+    }
+    .to_owned();
     let message = Message {
         authors: authors,
         content: content,
         id: entry.id().to_owned(),
         last_date: last_date,
-        links: entry
-            .links()
-            .iter()
-            .map(|l| l.href().to_owned())
-            .collect(),
-        title: entry.title().to_owned()
+        links: entry.links().iter().map(|l| l.href().to_owned()).collect(),
+        title: entry.title().to_owned(),
     };
-    return message
+    return message;
 }

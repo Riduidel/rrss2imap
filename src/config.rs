@@ -29,7 +29,7 @@ impl Config {
             email: None,
             folder: None,
             inline_image_as_data: false,
-            from: None
+            from: None,
         }
     }
 
@@ -53,7 +53,10 @@ impl Config {
     /// Used by serde to skip serialization of default config for feeds
     /// This method check if config is the default one (consisting only into None options)
     pub fn is_none(config: &Config) -> bool {
-        config.email.is_none() && config.folder.is_none() && config.from.is_none() && config.inline_image_as_data == false
+        config.email.is_none()
+            && config.folder.is_none()
+            && config.from.is_none()
+            && config.inline_image_as_data == false
     }
 
     /// Clear all content from this config excepted email address

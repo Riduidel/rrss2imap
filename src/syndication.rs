@@ -1,9 +1,8 @@
 /// This is a shameless copy of https://github.com/tomshen/rust-syndication to have it working with recent versions of
 /// both RSS and atom crates
-
 use std::str::FromStr;
 
-/// Possible feeds types 
+/// Possible feeds types
 pub enum Feed {
     Atom(atom_syndication::Feed),
     RSS(rss::Channel),

@@ -1,6 +1,6 @@
-use std::{thread, time};
 use imap::error::Result;
 use imap::Session;
+use std::{thread, time};
 
 use super::config::Config;
 
@@ -29,9 +29,9 @@ pub struct Email {
     #[serde(default = "Email::default_secure")]
     secure: Secure,
     #[serde(default = "Email::default_retry_max_count")]
-    retry_max_count:u8,
+    retry_max_count: u8,
     #[serde(default = "Email::default_retry_delay")]
-    retry_delay:u64
+    retry_delay: u64,
 }
 
 /// Imap effective connection type (ie once connection has been established).
@@ -58,18 +58,20 @@ impl Email {
     pub fn append<S: AsRef<str>, B: AsRef<[u8]>>(&self, mailbox: &S, content: &B) -> Result<()> {
         let mut count = 0;
         loop {
-            count = count+1;
+            count = count + 1;
             let mut imap = self.start();
             let result = imap.append(mailbox, content);
             if result.is_err() {
-                if count>self.retry_max_count {
+                if count > self.retry_max_count {
                     return result;
                 } else {
-                    error!("Previous append attempt failed with {}. Retrying ({}/{})in {} s.!", 
-                        result.unwrap_err(), 
+                    error!(
+                        "Previous append attempt failed with {}. Retrying ({}/{})in {} s.!",
+                        result.unwrap_err(),
                         count,
                         self.retry_max_count,
-                        self.retry_delay);
+                        self.retry_delay
+                    );
                     // TODO maybe remove that once code is parallel
                     thread::sleep(time::Duration::from_secs(self.retry_delay));
                 }
@@ -99,7 +101,7 @@ impl Email {
             password: "Set your imap server password (yup, in clear, this is very bad)".to_owned(),
             secure: Email::default_secure(),
             retry_max_count: Email::default_retry_max_count(),
-            retry_delay: Email::default_retry_delay()
+            retry_delay: Email::default_retry_delay(),
         }
     }
 
@@ -175,12 +177,13 @@ pub struct Settings {
     )]
     pub do_not_save: bool,
     /// inline all images as base64 data
-/*    #[serde(
-        skip_serializing_if = "Settings::is_false",
-        default = "Settings::default_false"
-    )]
-    pub inline_image_as_data: bool,
-*/    #[serde(default = "Email::default")]
+    /*    #[serde(
+            skip_serializing_if = "Settings::is_false",
+            default = "Settings::default_false"
+        )]
+        pub inline_image_as_data: bool,
+    */
+    #[serde(default = "Email::default")]
     pub email: Email,
     #[serde(default = )]
     pub config: Config,
@@ -193,14 +196,14 @@ impl Settings {
     pub fn default_false() -> bool {
         false
     }
-/*
-    pub fn is_true(value: &bool) -> bool {
-        !!value
-    }
-    pub fn default_true() -> bool {
-        true
-    }
-*/
+    /*
+        pub fn is_true(value: &bool) -> bool {
+            !!value
+        }
+        pub fn default_true() -> bool {
+            true
+        }
+    */
     pub fn default() -> Settings {
         Settings {
             do_not_save: false,
