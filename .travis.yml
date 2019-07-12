@@ -26,8 +26,6 @@ matrix:
       apt:
         packages:
         - gcc-arm-linux-gnueabihf
-    before_script:
-      - cargo install cross --force
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
   - rustup target add $TARGET || true
