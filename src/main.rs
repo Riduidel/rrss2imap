@@ -139,7 +139,6 @@ extern crate imap;
 extern crate native_tls;
 
 extern crate base64;
-
 extern crate atom_syndication;
 extern crate requests;
 extern crate rss;
@@ -149,8 +148,6 @@ extern crate xhtmlchardet;
 extern crate url;
 
 extern crate tree_magic;
-
-extern crate quoted_printable;
 
 extern crate emailmessage;
 
