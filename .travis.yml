@@ -45,8 +45,6 @@ script:
     else
       cross build --target $TARGET --verbose --release
     fi
-
-before_deploy:
   - mkdir -p target/executable
   - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
 
