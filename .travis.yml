@@ -31,13 +31,6 @@ install:
 # This is the script that will be run on each matrix element
 script:
   - |
-    if [ $TARGET = "x86_64-pc-windows-msvc" ]; then
-    elif [ $TARGET = "i686-apple-darwin" ]; then
-    elif [ $TARGET = "x86_64-apple-darwin" ]; then
-    else
-      cross --version
-    fi
-  - |
     if [ $TARGET = "x86_64-unknown-linux-gnu" ]; then
       echo "Running on $TARGET, so running tests!"
       cargo test
