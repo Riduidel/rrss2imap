@@ -45,7 +45,10 @@ script:
     else
       cross build --target $TARGET --verbose --release
     fi
+  - ls -la target
+  - ls -la target/release
   - mkdir -p target/executable
+  - ls -la target/executable
   - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
 
 
