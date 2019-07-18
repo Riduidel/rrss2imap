@@ -45,12 +45,8 @@ script:
     else
       cross build --target $TARGET --verbose --release
     fi
-  - ls -la target
-  - ls -la target/release
-  - ls -la target/${TARGET}
   - mkdir -p target/executable
-  - ls -la target/executable
-  - cp target/release/rrss2imap target/executable/rrss2imap-${TARGET}
+  - cp target/${TARGET}/release/rrss2imap target/executable/rrss2imap-${TARGET}
   - ls -la target/executable
 
 # Once the Rust packages are built, here they are deployed
