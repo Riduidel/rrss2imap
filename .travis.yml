@@ -52,8 +52,7 @@ script:
 # Once the Rust packages are built, here they are deployed
 deploy:
   provider: releases
-  api_key:
-    secure: "ZqX4/j/XYQWc+HwtUWL7zqDzJo+HODV80ZKaQ/CakUUe2sa8zTf8m4IlqxCmN47+4k/hPH1nNUC/1frPatnn3rrnyHled5L0081jZozHhIxqSkS2VfkmrSNJqXFfDg1HviGgUv+kKx0ncdJ7f0O10OK31Wz6TWiogWm3pbpmEWuW9zi9PngUSvFQYHI4lAND7qnixiA/Xr6FlHrdxZLyxd4nENS99mVCALPwuo1i/H7mvNBOHMfoZwp3Oh21AyOBvtF0izLyzNz6a2JUIbnFKiMcqspR5UxDcR/kXBNQb5NIMCjWTpclZ9JKW5aED4l32P0nyGrk0e+TB81WeCDFd0S90Dnpm9cHSlCaAvFQLerQ6R5AQOWy58qkAK3pCwmeh56fGjtY47xO5qc+nAdsONYlwfBUUqw8ZlLByPS1urcDQX0sBD4XZADnGcHPYbBpEoXwO1hGRP8YrXKJVAvjeTZ97HAw7UIesu2du5Lt7EFidioBVL+fS4LIlT4/+oNYeqylbTmxv6H/6BEWTV9dao5763pZs6AlknmDMBT8Pv57DFixu85XK5A2I5Yne4zqGzwth+U37iTDW40l17SCYa09j4s6W2QLdMnHz3OBQfSJraiarI0vEVj3wOLxagFsrbbr7PZZjIIetBTeNmtCDQDsUZ6R4ttN/87glvYe934="
+  api_key: ${GITHUB_OAUTH}
   file_glob: true
   file: target/executable/*
   skip_cleanup: true
