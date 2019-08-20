@@ -151,6 +151,8 @@ extern crate tree_magic;
 
 extern crate emailmessage;
 
+extern crate openssl_probe;
+
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -232,11 +234,12 @@ fn main() {
         setup_panic!();
     }
     // Configure logger
-
     Logger::with_str("warn, rrss2imap = info")
         .format(flexi_logger::colored_detailed_format)
         .start()
         .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e));
+    
+    openssl_probe::init_ssl_cert_env_vars();
 
     let mut store = store::Store::load();
     let opt = RRSS2IMAP::from_args();
