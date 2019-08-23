@@ -8,7 +8,7 @@ cache: cargo
 # All Rust build architectures are defined here
 matrix:
   include:
-  - env: TARGET=x86_64-unknown-linux-gnu
+  - env: CROSS=cross TARGET=x86_64-unknown-linux-gnu
     os: linux
   - env: TARGET=i686-apple-darwin
     os: osx
@@ -18,15 +18,23 @@ matrix:
     osx_image: xcode10
   - env: TARGET=x86_64-pc-windows-msvc
     os: windows
-  - env: TARGET=armv7-unknown-linux-gnueabihf
+  - env: CROSS=cross TARGET=armv7-unknown-linux-gnueabihf
     os: linux
     addons:
       apt:
         packages:
         - gcc-arm-linux-gnueabihf
-install:
+
+# part shamelessly borrowed from https://github.com/Enet4/nifti-rs/blob/438538bfffa2347ece5a09c2a37c0c407ec6fbee/.travis.yml
+before_script:
   - export PATH="$PATH:$HOME/.cargo/bin"
   - rustup target add $TARGET || true
+  - if [ ! -z "$CROSS" ]; then
+      cargo install cross --force;
+      export CARGO_CMD="cross";
+    else
+      export CARGO_CMD=cargo;
+    fi
     
 # This is the script that will be run on each matrix element
 script:
@@ -35,20 +43,8 @@ script:
       echo "Running on $TARGET, so running tests!"
       cargo test
     fi
-  - |
-    if [ $TARGET = "x86_64-pc-windows-msvc" ]; then
-      cargo build --target $TARGET --verbose
-      cargo build --target $TARGET --verbose --release
-    elif [ $TARGET = "i686-apple-darwin" ]; then
-      cargo build --target $TARGET --verbose
-      cargo build --target $TARGET --verbose --release
-    elif [ $TARGET = "x86_64-apple-darwin" ]; then
-      cargo build --target $TARGET --verbose
-      cargo build --target $TARGET --verbose --release
-    else
-      cross build --target $TARGET --verbose
-      cross build --target $TARGET --verbose --release
-    fi
+  - $CARGO_CMD build --target $TARGET --verbose
+  - $CARGO_CMD build --target $TARGET --verbose --release
   - mkdir -p target/executable
   - ls -la target/${TARGET}
   - cp target/${TARGET}/debug/rrss2imap target/executable/rrss2imap-${TARGET}-debug
@@ -65,6 +61,7 @@ deploy:
   overwrite: true
   # This way, the release is not directly visible
   draft: true
+  verbose: true
   # Release name on body
   name: "$TRAVIS_TAG"
   # Body is created by git journal !
