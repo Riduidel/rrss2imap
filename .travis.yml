@@ -37,15 +37,21 @@ script:
     fi
   - |
     if [ $TARGET = "x86_64-pc-windows-msvc" ]; then
+      cargo build --target $TARGET --verbose
       cargo build --target $TARGET --verbose --release
     elif [ $TARGET = "i686-apple-darwin" ]; then
+      cargo build --target $TARGET --verbose
       cargo build --target $TARGET --verbose --release
     elif [ $TARGET = "x86_64-apple-darwin" ]; then
+      cargo build --target $TARGET --verbose
       cargo build --target $TARGET --verbose --release
     else
+      cross build --target $TARGET --verbose
       cross build --target $TARGET --verbose --release
     fi
   - mkdir -p target/executable
+  - ls -la target/${TARGET}
+  - cp target/${TARGET}/debug/rrss2imap target/executable/rrss2imap-${TARGET}-debug
   - cp target/${TARGET}/release/rrss2imap target/executable/rrss2imap-${TARGET}
   - ls -la target/executable
 
