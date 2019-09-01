@@ -10,7 +10,7 @@ keywords = ["RSS", "Atom", "IMAP", "command-line", "script"]
 categories = ["command-line-utilities", "email"]
 license = "GPL-3.0-or-later"
 edition = "2018"
-include = [ "templates/*" ]
+include = [ "templates/*", "src/**/*", "Cargo.toml" ]
 
 [badges]
 travis-ci = { repository = "Riduidel/rrss2imap", branch = "master" }
