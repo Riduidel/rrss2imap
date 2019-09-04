@@ -113,6 +113,7 @@ impl Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
                 last_updated: if settings.do_not_save {
+                    warn!("do_not_save is set. As a consequence, feed won't be updated");
                     self.last_updated
                 } else {
                     feed_date
@@ -150,6 +151,7 @@ impl Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
                 last_updated: if settings.do_not_save {
+                    warn!("do_not_save is set. As a consequence, feed won't be updated");
                     self.last_updated
                 } else {
                     feed_date
