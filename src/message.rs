@@ -13,6 +13,8 @@ use emailmessage::{header, Message as Email, SinglePart};
 lazy_static! {
     pub static ref TERA: Tera = {
         let mut tera = compile_templates!("templates/*");
+        let message = include_str!("../templates/message.html");
+        tera.add_raw_template("message.html", message);
         tera.autoescape_on(vec![]);
         tera
     };

@@ -10,6 +10,7 @@ keywords = ["RSS", "Atom", "IMAP", "command-line", "script"]
 categories = ["command-line-utilities", "email"]
 license = "GPL-3.0-or-later"
 edition = "2018"
+# This is only valid for the archive available in crates.io, not for the generated executable
 include = [ "templates/*", "src/**/*", "Cargo.toml" ]
 
 [badges]
