@@ -204,9 +204,17 @@ fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
         // (because there is no better html parser than a real browser one)
         // TODO implement image inlining
         .to_owned();
-    let id = match entry.guid() {
-        Some(g) => g.value().to_owned(),
-        _ => "no id".to_owned(),
+    let links = match entry.link() {
+        Some(l) => vec![l.to_owned()],
+        _ => vec![],
+    };
+    let id = if links.is_empty() {
+        match entry.guid() {
+            Some(g) => g.value().to_owned(),
+            _ => "no id".to_owned(),
+        }
+    } else {
+        links[0].clone()
     };
     let last_date = extract_date_from_rss(entry);
     let message = Message {
@@ -214,10 +222,7 @@ fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
         content: content,
         id: id,
         last_date: last_date,
-        links: match entry.link() {
-            Some(l) => vec![l.to_owned()],
-            _ => vec![],
-        },
+        links: links,
         title: entry.title().unwrap_or("").to_owned(),
     };
     return message;
