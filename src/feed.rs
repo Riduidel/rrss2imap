@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, NaiveDate, Utc};
 
 use super::config::*;
 
@@ -24,6 +24,10 @@ impl Feed {
     /// Creates a new naivedatetime with a default value (which is, to my mind) a sensible default for computers
     pub fn at_epoch() -> NaiveDateTime {
         NaiveDateTime::from_timestamp(0, 0)
+    }
+
+    pub fn at_end_of_universe() -> NaiveDateTime {
+        NaiveDate::from_ymd(9999, 1, 1).and_hms_milli(0, 0, 0, 0)
     }
 
     // Convert the parameters vec into a valid feed (if possible)
@@ -97,7 +101,11 @@ impl Feed {
     fn read_atom(&self, feed: AtomFeed, settings: &Settings) -> Feed {
         debug!("reading ATOM feed {}", &self.url);
         let feed_date_text = feed.updated();
-        let feed_date = feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc();
+        let feed_date = if feed_date_text.is_empty() {
+            Feed::at_end_of_universe()
+        } else {
+            feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc()
+        };
         info!(
             "Feed date is {} while previous read date is {}",
             feed_date, self.last_updated
