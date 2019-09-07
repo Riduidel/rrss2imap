@@ -76,9 +76,9 @@ impl Feed {
 
     pub fn read(&self, settings: &Settings) -> Feed {
         info!("Reading feed from {}", self.url);
-        match requests::get(&self.url) {
-            Ok(response) => match response.text() {
-                Some(text) => match text.parse::<syndication::Feed>() {
+        match reqwest::get(&self.url) {
+            Ok(mut response) => match response.text() {
+                Ok(text) => match text.parse::<syndication::Feed>() {
                     Ok(parsed) => {
                         return match parsed {
                             syndication::Feed::Atom(atom_feed) => {
@@ -91,7 +91,7 @@ impl Feed {
                     }
                     Err(e) => error!("Content ar {} is neither Atom, nor RSS {}.\nTODO check real content type to help user.", &self.url, e),
                 },
-                None => error!("There is no text at {}", &self.url),
+                Err(e) => error!("There is no text at {} due to error {}", &self.url, e),
             },
             Err(e) => error!("Unable to get {} due to {}.\nTODO Add better http response analysis !", &self.url, e),
         }
@@ -230,7 +230,8 @@ fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
 
 fn extract_date_from_rss(entry: &RssItem) -> NaiveDateTime {
     if entry.pub_date().is_some() {
-        let pub_date = str::replace(entry.pub_date().unwrap(), "-0000", "+0000");
+        let mut pub_date = str::replace(entry.pub_date().unwrap(), "-0000", "+0000");
+        pub_date = str::replace(&pub_date, "+00:00", "+0000");
         return DateTime::parse_from_rfc2822(&pub_date)
             .unwrap_or_else(|e| {
                 panic!(

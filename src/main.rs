@@ -140,7 +140,7 @@ extern crate native_tls;
 
 extern crate base64;
 extern crate atom_syndication;
-extern crate requests;
+extern crate reqwest;
 extern crate rss;
 
 extern crate xhtmlchardet;

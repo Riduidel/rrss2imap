@@ -60,7 +60,10 @@ impl Message {
                 builder = builder.from(from.parse().unwrap());
             }
             None => {
-                if let Some(first_author) = self.authors.get(0) {
+                if self.authors.is_empty() {
+                    builder = builder.from("what@what.com".parse().unwrap());
+                } else {
+                    let first_author = &self.authors[0];
                     builder = builder.from(first_author.parse().expect(&format!(
                         r##"Unable to parse first author {}.
 Please consider adding in feed config the \"from\": ... field
