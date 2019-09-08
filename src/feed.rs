@@ -272,17 +272,26 @@ fn extract_authors_from_atom(entry: &AtomEntry, feed: &AtomFeed) -> Vec<String> 
 fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec<String> {
     let fixed = message_authors
         .iter()
+        .map(|author| {
+            trim_to_chars(author, vec!["|", ":", "-"])
+        })
         // ni next line, we create a tuple to be used to generate the email address
-        .map(|author| (author, // first element of tuple is email displayed name
-            author.to_lowercase() // second element of tuple is generated user address
+        .map(|author| (author.clone(), // first element of tuple is email displayed name
+            author.clone().to_lowercase() // second element of tuple is generated user address
                 .replace(" ", "_")
-                .replace("&", "and")
-                .replace(",;:!", "")
-                .replace("ï", "i")
             ))
         .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
         .collect();
     return fixed;
+}
+
+fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
+    let mut remaining = text;
+    for cutter in characters {
+        let elements:Vec<&str> = remaining.split(cutter).collect();
+        remaining = elements[0].trim();
+    }
+    remaining.to_string()
 }
 
 fn find_atom_domain(feed: &AtomFeed) -> String {
