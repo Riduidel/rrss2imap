@@ -1,6 +1,6 @@
 [package]
 name = "rrss2imap"
-version = "0.2.13-alpha.0"
+version = "0.2.13"
 authors = ["Nicolas Delsaux <nicolas.delsaux@gmx.fr>"]
 description = "A simple script that exposes RSS entries as mail messages, pushed directly using IMAP"
 homepage = "https://github.com/Riduidel/rrss2imap"
