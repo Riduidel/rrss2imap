@@ -123,6 +123,7 @@ extern crate flexi_logger;
 extern crate treexml;
 
 extern crate chrono;
+extern crate rfc822_sanitizer;
 
 #[macro_use]
 extern crate tera;

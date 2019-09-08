@@ -179,12 +179,7 @@ fn extract_authors_from_rss(entry: &RssItem, feed: &RssChannel) -> Vec<String> {
         Some(l) => message_authors = vec![l.to_owned()],
         _ => message_authors = vec![feed.title().to_owned()],
     }
-    message_authors = message_authors
-        .iter()
-        .map(|author| (author, author.replace(" ", "_")))
-        .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
-        .collect();
-    message_authors
+    sanitize_message_authors(message_authors, domain)
 }
 fn find_rss_domain(feed: &RssChannel) -> String {
     return Some(feed.link())
@@ -230,12 +225,11 @@ fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
 
 fn extract_date_from_rss(entry: &RssItem) -> NaiveDateTime {
     if entry.pub_date().is_some() {
-        let mut pub_date = str::replace(entry.pub_date().unwrap(), "-0000", "+0000");
-        pub_date = str::replace(&pub_date, "+00:00", "+0000");
-        return DateTime::parse_from_rfc2822(&pub_date)
+        let pub_date = entry.pub_date().unwrap().to_owned();
+        return rfc822_sanitizer::parse_from_rfc2822_with_fallback(&pub_date)
             .unwrap_or_else(|e| {
                 panic!(
-                    "pub_date for item {:?} (value is {:?}) can't be parsed. {:?}",
+                    "pub_date for item {:?} (value is {:?}) can't be parsed as rfc2822. {:?}",
                     &entry, pub_date, e
                 )
             })
@@ -272,12 +266,23 @@ fn extract_authors_from_atom(entry: &AtomEntry, feed: &AtomFeed) -> Vec<String> 
     if message_authors.is_empty() {
         message_authors = vec![feed.title().to_owned()]
     }
-    message_authors = message_authors
+    sanitize_message_authors(message_authors, domain)
+}
+
+fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec<String> {
+    let fixed = message_authors
         .iter()
-        .map(|author| (author, author.replace(" ", "_")))
+        // ni next line, we create a tuple to be used to generate the email address
+        .map(|author| (author, // first element of tuple is email displayed name
+            author.to_lowercase() // second element of tuple is generated user address
+                .replace(" ", "_")
+                .replace("&", "and")
+                .replace(",;:!", "")
+                .replace("ï", "i")
+            ))
         .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
         .collect();
-    message_authors
+    return fixed;
 }
 
 fn find_atom_domain(feed: &AtomFeed) -> String {
