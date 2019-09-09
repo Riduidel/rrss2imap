@@ -10,6 +10,7 @@ use atom_syndication::Feed as AtomFeed;
 use rss::Channel as RssChannel;
 use rss::Item as RssItem;
 use url::Url;
+use unidecode::unidecode;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
@@ -275,9 +276,10 @@ fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec<Str
         .map(|author| {
             trim_to_chars(author, vec!["|", ":", "-"])
         })
+        .map(|author| author.to_owned())
         // ni next line, we create a tuple to be used to generate the email address
         .map(|author| (author.clone(), // first element of tuple is email displayed name
-            author.clone().to_lowercase() // second element of tuple is generated user address
+            unidecode(&author).to_lowercase() // second element of tuple is generated user address
                 .replace(" ", "_")
             ))
         .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
