@@ -20,6 +20,8 @@ pub struct Store {
     pub settings: Settings,
     /// Contains all feeds being read
     pub feeds: Vec<Feed>,
+    #[serde(skip)]
+    pub dirty:bool
 }
 
 /// Name of the file from which config is read/written. As of today, this name is not expected to change.
@@ -47,6 +49,7 @@ impl Store {
             Store {
                 settings: Settings::default(),
                 feeds: vec![],
+                dirty: false
             }
         }
     }
@@ -60,6 +63,7 @@ impl Store {
     /// Set a new value for email and save file (prior to obviously exiting)
     pub fn set_email(&mut self, email: String) {
         self.settings.config.email = Some(email);
+        self.dirty = true;
         self.save();
     }
 
@@ -79,7 +83,7 @@ impl Store {
         warn!("importing content from {:?}", path_to_read);
         let count = self.feeds.len();
         import::import(&path_to_read, self);
-        self.save();
+        self.dirty = true;
         warn!(
             "imported {} feeds from {:?}",
             self.feeds.len() - count,
@@ -92,14 +96,14 @@ impl Store {
         info!("adding \"{:?}\"", parameters);
         let to_add = Feed::from(parameters);
         self.add_feed(to_add);
-        self.save();
+        self.dirty = true;
     }
 
     /// Delete the feed which id is given as parameter.
     /// The use of a number is a compatibility requirement
     pub fn delete(&mut self, feed: u32) {
         let f = self.feeds.remove(feed as usize);
-        self.save();
+        self.dirty = true;
         info!("Removed {:?}", f);
     }
 
@@ -107,7 +111,7 @@ impl Store {
     pub fn reset(&mut self) {
         self.feeds.clear();
         self.settings.config.clear();
-        self.save();
+        self.dirty = true;
         info!("store have been cleared to contain only {:?}", self);
     }
 
@@ -121,7 +125,7 @@ impl Store {
             .iter()
             .map(|f| f.read(&self.settings))
             .collect::<Vec<Feed>>();
-        self.save();
+        self.dirty = true;
     }
 
     /// Prints all the feeds to stdout.
@@ -149,6 +153,15 @@ impl Store {
                 "We already read this feed with the following configuration {:?}",
                 already_existing
             );
+        }
+    }
+}
+
+impl Drop for Store {
+    fn drop(&mut self) {
+        if self.dirty {
+            info!("store has been modified. Saving !");
+            self.save();
         }
     }
 }
