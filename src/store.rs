@@ -160,8 +160,12 @@ impl Store {
 impl Drop for Store {
     fn drop(&mut self) {
         if self.dirty {
-            info!("store has been modified. Saving !");
-            self.save();
+            if self.settings.do_not_save {
+                error!("do_not_save flag is set in config.json. NOT SAVING!")
+            } else {
+                info!("store has been modified. Saving !");
+                self.save();
+            }
         }
     }
 }

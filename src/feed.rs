@@ -117,7 +117,7 @@ impl Feed {
                 .iter()
                 .map(|e| extract_from_atom(e, &feed))
                 .filter(|e| e.last_date >= self.last_updated)
-                .for_each(|e| e.write_to_imap(&self, settings));
+                .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
@@ -155,7 +155,7 @@ impl Feed {
                 .iter()
                 .map(|e| extract_from_rss(e, &feed))
                 .filter(|e| e.last_date >= self.last_updated)
-                .for_each(|e| e.write_to_imap(&self, settings));
+                .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
             return Feed {
                 url: self.url.clone(),
                 config: self.config.clone(),
