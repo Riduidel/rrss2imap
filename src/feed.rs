@@ -226,15 +226,14 @@ fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
 
 fn extract_date_from_rss(entry: &RssItem) -> NaiveDateTime {
     if entry.pub_date().is_some() {
-        let pub_date = entry.pub_date().unwrap().to_owned();
-        return rfc822_sanitizer::parse_from_rfc2822_with_fallback(&pub_date)
-            .unwrap_or_else(|e| {
-                panic!(
-                    "pub_date for item {:?} (value is {:?}) can't be parsed as rfc2822. {:?}",
-                    &entry, pub_date, e
+        let mut pub_date = entry.pub_date().unwrap().to_owned();
+        pub_date = pub_date.replace("UTC", "UT");
+        return rfc822_sanitizer::parse_from_rfc2822_with_fallback(&pub_date).unwrap_or_else(|e| {
+            panic!(
+                "pub_date for item {:?} (value is {:?}) can't be parsed due to error {:?}",
+                &entry, pub_date, e
                 )
-            })
-            .naive_utc();
+            }) .naive_utc();
     } else if entry.dublin_core_ext().is_some()
         && entry.dublin_core_ext().unwrap().dates().len() > 0
     {
@@ -242,7 +241,7 @@ fn extract_date_from_rss(entry: &RssItem) -> NaiveDateTime {
         return DateTime::parse_from_rfc3339(&pub_date)
             .unwrap_or_else(|e| {
                 panic!(
-                    "dc:pub_date for item {:?} (value is {:?}) can't be parsed. {:?}",
+                    "dc:pub_date for item {:?} (value is {:?}) can't be parsed.due to error {:?}",
                     &entry, pub_date, e
                 )
             })
