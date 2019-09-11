@@ -8,17 +8,17 @@ cache: cargo
 # All Rust build architectures are defined here
 matrix:
   include:
-  - env: CROSS=cross TARGET=x86_64-unknown-linux-gnu
+  - env: DEBUG=debug CROSS=cross TARGET=x86_64-unknown-linux-gnu
     os: linux
-  - env: TARGET=i686-apple-darwin
+  - env: DEBUG=debug TARGET=i686-apple-darwin
     os: osx
     osx_image: xcode10
-  - env: TARGET=x86_64-apple-darwin
+  - env: DEBUG=debug TARGET=x86_64-apple-darwin
     os: osx
     osx_image: xcode10
   - env: TARGET=x86_64-pc-windows-msvc
     os: windows
-  - env: CROSS=cross TARGET=armv7-unknown-linux-gnueabihf
+  - env: DEBUG=debug CROSS=cross TARGET=armv7-unknown-linux-gnueabihf
     os: linux
     addons:
       apt:
@@ -43,7 +43,9 @@ script:
       echo "Running on $TARGET, so running tests!"
       cargo test
     fi
-  - $CARGO_CMD build --target $TARGET --verbose
+  - if [ ! -z "$DEBUG" ]; then
+      $CARGO_CMD build --target $TARGET --verbose
+    fi
   - $CARGO_CMD build --target $TARGET --verbose --release
   - mkdir -p target/executable
   - ls -la target/${TARGET}
