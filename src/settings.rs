@@ -185,7 +185,7 @@ pub struct Settings {
     */
     #[serde(default = "Email::default")]
     pub email: Email,
-    #[serde(default = )]
+    #[serde(default = "Config::new")]
     pub config: Config,
 }
 

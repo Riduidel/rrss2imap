@@ -175,7 +175,7 @@ fn extract_authors_from_rss(entry: &RssItem, feed: &RssChannel) -> Vec<String> {
     let domain = find_rss_domain(feed);
     // This is where we also transform author names into urls in order
     // to have valid email addresses everywhere
-    let mut message_authors: Vec<String>;
+    let message_authors: Vec<String>;
     match entry.author() {
         Some(l) => message_authors = vec![l.to_owned()],
         _ => message_authors = vec![feed.title().to_owned()],
