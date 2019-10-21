@@ -40,7 +40,8 @@ jobs:
           args: --release --all-features
       - uses: jcblw/bash@master
         with:
-          args: "ls target"
+          args:
+            - "ls target"
 
   Cross_build_for_Raspbian:
 
@@ -62,4 +63,5 @@ jobs:
           args: --release --all-features
       - uses: jcblw/bash@master
         with:
-          args: "ls target"
+          args:
+            - "ls target"
