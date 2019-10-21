@@ -9,17 +9,51 @@ on:
     - master
 
 jobs:
-  build:
-    name: Build and test rrss2imap
-    runs-on: ubuntu-latest
+#  build:
+#    name: Build and test rrss2imap
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@master
+#      # see https://github.com/marketplace/actions/rust-cargo
+#      - uses: actions-rs/cargo@v1
+#        with:
+#          command: test
+#          args: --release --all-features
+#      - uses: actions-rs/cargo@v1
+#        with:
+#          command: build
+#          args: --release --all-features
+  Standard OS build:
+
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
     steps:
       - uses: actions/checkout@master
       # see https://github.com/marketplace/actions/rust-cargo
       - uses: actions-rs/cargo@v1
         with:
-          command: test
+          command: build
           args: --release --all-features
+
+  Cross build for Raspbian:
+
+    name: Build for Raspbian
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: armv7-unknown-linux-gnueabihf
+          override: true
+      - uses: actions/checkout@master
+      # see https://github.com/marketplace/actions/rust-cargo
       - uses: actions-rs/cargo@v1
         with:
+          use-cross: true
           command: build
           args: --release --all-features
