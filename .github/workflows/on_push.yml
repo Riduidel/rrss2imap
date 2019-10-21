@@ -23,7 +23,7 @@ jobs:
 #        with:
 #          command: build
 #          args: --release --all-features
-  Standard OS build:
+  Standard_OS_build:
 
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -39,7 +39,7 @@ jobs:
           command: build
           args: --release --all-features
 
-  Cross build for Raspbian:
+  Cross_build_for_Raspbian:
 
     name: Build for Raspbian
     runs-on: ubuntu-latest
