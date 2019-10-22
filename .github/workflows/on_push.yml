@@ -40,7 +40,7 @@ jobs:
           args: --release --all-features
       - uses: fnkr/github-action-git-bash@v1
         with:
-          args: "ls target"
+          args: "ls -la target/release"
 
   Cross_build_for_Raspbian:
 
@@ -62,4 +62,4 @@ jobs:
           args: --release --all-features
       - uses: fnkr/github-action-git-bash@v1
         with:
-          args: "ls target"
+          args: "ls -la target/release"
