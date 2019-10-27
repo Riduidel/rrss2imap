@@ -29,9 +29,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest] #, macOS-latest]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
       - uses: actions/checkout@master
       # see https://github.com/marketplace/actions/rust-cargo
       - uses: actions-rs/cargo@v1
