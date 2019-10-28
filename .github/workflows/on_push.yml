@@ -41,9 +41,11 @@ jobs:
         with:
           command: build
           args: --release --all-features
-      - uses: fnkr/github-action-git-bash@v1
+      - name: Upload build result for OS
+        uses: actions/upload-artifact@v1
         with:
-          args: "ls -la target/release"
+          name: ${{ matrix.os }}/rrss2imap
+          path: target/release/rrss2imap
 
   Cross_build_for_Raspbian:
 
@@ -63,6 +65,8 @@ jobs:
           use-cross: true
           command: build
           args: --release --all-features
-      - uses: fnkr/github-action-git-bash@v1
+      - name: Upload build result for Raspbian
+        uses: actions/upload-artifact@v1
         with:
-          args: "ls -la target/release"
+          name: raspbian/rrss2imap
+          path: target/release/rrss2imap
