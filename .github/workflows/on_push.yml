@@ -44,7 +44,7 @@ jobs:
       - name: Upload build result for OS
         uses: actions/upload-artifact@v1
         with:
-          name: ${{ matrix.os }}/rrss2imap
+          name: rrss2imap_${{ matrix.os }}
           path: target/release/rrss2imap
 
   Cross_build_for_Raspbian:
@@ -68,5 +68,5 @@ jobs:
       - name: Upload build result for Raspbian
         uses: actions/upload-artifact@v1
         with:
-          name: raspbian/rrss2imap
+          name: rrss2imap_armv7-unknown-linux-gnueabihf
           path: target/release/rrss2imap
