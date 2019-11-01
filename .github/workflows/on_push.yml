@@ -29,7 +29,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest]
 
     steps:
       - uses: actions-rs/toolchain@v1
@@ -46,6 +46,30 @@ jobs:
         with:
           name: rrss2imap_${{ matrix.os }}
           path: target/release/rrss2imap
+
+  Windows_build:
+
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions/checkout@master
+      # see https://github.com/marketplace/actions/rust-cargo
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+      - name: Upload build result for OS
+        uses: actions/upload-artifact@v1
+        with:
+          name: rrss2imap_${{ matrix.os }}
+          path: target/release/rrss2imap.exe
 
   Cross_build_for_Raspbian:
 
