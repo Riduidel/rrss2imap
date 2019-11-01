@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: rrss2imap_${{ matrix.os }}
-          path: target/release/rrss2imap
+          path: target/debug/rrss2imap
     needs: Run_cargo_tests
 
   Windows_build:
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: rrss2imap_${{ matrix.os }}
-          path: target/release/rrss2imap.exe
+          path: target/debug/rrss2imap.exe
     needs: Run_cargo_tests
 
   Cross_build_for_Raspbian:
@@ -92,5 +92,5 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: rrss2imap_armv7-unknown-linux-gnueabihf
-          path: target/release/rrss2imap
+          path: target/debug/rrss2imap
     needs: Run_cargo_tests
