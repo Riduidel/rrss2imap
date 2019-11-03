@@ -1,0 +1,91 @@
+name: build Rust on push
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  Standard_OS_build:
+
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions/checkout@master
+      # see https://github.com/marketplace/actions/rust-cargo
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features
+      - name: Upload matrix release asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
+          name: rrss2imap_${{ matrix.os }}
+          path: target/release/rrss2imap
+
+  Windows_build:
+
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions/checkout@master
+      # see https://github.com/marketplace/actions/rust-cargo
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features
+      - name: Upload Windows asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
+          name: rrss2imap_${{ matrix.os }}
+          path: target/release/rrss2imap.exe
+
+  Cross_build_for_Raspbian:
+
+    name: Build for Raspbian
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: armv7-unknown-linux-gnueabihf
+          override: true
+      - uses: actions/checkout@master
+      # see https://github.com/marketplace/actions/rust-cargo
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --all-features
+      - name: Upload matrix release asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
+          name: rrss2imap_${{ matrix.os }}
+          path: target/release/rrss2imap
