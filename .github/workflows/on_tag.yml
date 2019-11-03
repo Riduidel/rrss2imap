@@ -1,4 +1,4 @@
-name: build Rust on push
+name: Push release artifacts on tag
 
 on:
   push:
