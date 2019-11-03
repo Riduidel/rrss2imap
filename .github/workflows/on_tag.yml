@@ -31,8 +31,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
-          name: rrss2imap_${{ matrix.os }}
-          path: target/release/rrss2imap
+          asset_name: rrss2imap_${{ matrix.os }}
+          asset_path: target/release/rrss2imap
 
   Windows_build:
 
@@ -59,8 +59,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
-          name: rrss2imap_${{ matrix.os }}
-          path: target/release/rrss2imap.exe
+          asset_name: rrss2imap_${{ matrix.os }}
+          asset_path: target/release/rrss2imap.exe
 
   Cross_build_for_Raspbian:
 
@@ -87,5 +87,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
-          name: rrss2imap_${{ matrix.os }}
-          path: target/release/rrss2imap
+          asset_name: rrss2imap_${{ matrix.os }}
+          asset_path: target/release/rrss2imap
