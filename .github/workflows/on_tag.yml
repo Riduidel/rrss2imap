@@ -33,7 +33,7 @@ jobs:
           upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
           asset_name: rrss2imap_${{ matrix.os }}
           asset_path: target/release/rrss2imap
-
+          asset_content_type: application/octet-stream
   Windows_build:
 
     name: Build on ${{ matrix.os }}
@@ -61,7 +61,7 @@ jobs:
           upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
           asset_name: rrss2imap_${{ matrix.os }}
           asset_path: target/release/rrss2imap.exe
-
+          asset_content_type: application/vnd.microsoft.portable-executable
   Cross_build_for_Raspbian:
 
     name: Build for Raspbian
@@ -89,3 +89,5 @@ jobs:
           upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
           asset_name: rrss2imap_${{ matrix.os }}
           asset_path: target/release/rrss2imap
+          asset_content_type: application/octet-stream
+
