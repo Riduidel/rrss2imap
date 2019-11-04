@@ -13,6 +13,10 @@ jobs:
     name: Test rrss2imap
     runs-on: ubuntu-latest
     steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
       - uses: actions/checkout@master
       # see https://github.com/marketplace/actions/rust-cargo
       - uses: actions-rs/cargo@v1
