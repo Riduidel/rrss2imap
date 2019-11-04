@@ -7,18 +7,13 @@ on:
 
 jobs:
   Standard_OS_build:
-
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
-
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+      - uses: olegtarasov/get-tag@j1
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -34,19 +29,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
+          upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{GITHUB_TAG_NAME}}/assets
           asset_name: rrss2imap_${{ matrix.os }}
           asset_path: target/release/rrss2imap
           asset_content_type: application/octet-stream
+    needs: Get_tag_name
   Windows_build:
-
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [windows-latest]
-
     steps:
+      - uses: olegtarasov/get-tag@j1
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -62,16 +57,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
+          upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{GITHUB_TAG_NAME}}/assets
           asset_name: rrss2imap_${{ matrix.os }}
           asset_path: target/release/rrss2imap.exe
           asset_content_type: application/vnd.microsoft.portable-executable
+    needs: Get_tag_name
   Cross_build_for_Raspbian:
-
     name: Build for Raspbian
     runs-on: ubuntu-latest
-
     steps:
+      - uses: olegtarasov/get-tag@j1
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -90,8 +85,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{github.ref}}/assets
+          upload_url: github.com/repos/Riduidel/rrss2imap/releases/{{GITHUB_TAG_NAME}}/assets
           asset_name: rrss2imap_${{ matrix.os }}
           asset_path: target/release/rrss2imap
           asset_content_type: application/octet-stream
+    needs: Get_tag_name
 
