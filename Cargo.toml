@@ -54,6 +54,7 @@ url = "1.7"
 tree_magic = "0.2"
 emailmessage = "0.2"
 unidecode = "0.3.0"
+regex = "1.2.1"
 
 [dev-dependencies]
 assert_cli = "0.6"

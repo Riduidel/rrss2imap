@@ -11,6 +11,7 @@ use rss::Channel as RssChannel;
 use rss::Item as RssItem;
 use url::Url;
 use unidecode::unidecode;
+use regex::Regex;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
@@ -273,26 +274,10 @@ fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec<Str
     let fixed = message_authors
         .iter()
         .map(|author| {
-            trim_to_chars(author, vec!["|", ":", "-"])
+            sanitize_email(author, &domain)
         })
-        .map(|author| author.to_owned())
-        // ni next line, we create a tuple to be used to generate the email address
-        .map(|author| (author.clone(), // first element of tuple is email displayed name
-            unidecode(&author).to_lowercase() // second element of tuple is generated user address
-                .replace(" ", "_")
-            ))
-        .map(|tuple| format!("{} <{}@{}>", tuple.0, tuple.1, domain))
         .collect();
     return fixed;
-}
-
-fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
-    let mut remaining = text;
-    for cutter in characters {
-        let elements:Vec<&str> = remaining.split(cutter).collect();
-        remaining = elements[0].trim();
-    }
-    remaining.to_string()
 }
 
 fn find_atom_domain(feed: &AtomFeed) -> String {
@@ -335,4 +320,59 @@ fn extract_from_atom(entry: &AtomEntry, feed: &AtomFeed) -> Message {
         title: entry.title().to_owned(),
     };
     return message;
+}
+
+fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
+    let mut remaining = text;
+    for cutter in characters {
+        let elements:Vec<&str> = remaining.split(cutter).collect();
+        remaining = elements[0].trim();
+    }
+    remaining.to_string()
+}
+
+fn sanitize_email(email:&String, domain:&String)->String {
+    lazy_static! {
+        static ref email_and_name_detector:Regex = 
+            Regex::new("([[:alpha:]_%\\+\\-\\.]+@[[:alpha:]_%\\+\\-]+\\.[[:alpha:]_%\\+\\-]+{1,}) \\(([^\\)]*)\\)").unwrap();
+    }
+    if email_and_name_detector.is_match(email) {
+        let captures = email_and_name_detector.captures(email).unwrap();
+        return format!("{} <{}>", captures.get(2).unwrap().as_str(), captures.get(1).unwrap().as_str());
+    } else {
+        let email = trim_to_chars(email, vec!["|", ":", "-"]);
+        let tuple = (email.clone(),
+        unidecode(&email).to_lowercase() // second element of tuple is generated user address
+                    .replace(" ", "_")
+                );
+        return format!("{} <{}@{}>", tuple.0, tuple.1, domain);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    mod email_tests {
+        use super::super::*;
+
+        #[test]
+        fn can_create_email_from_xkcd() {
+            assert_eq!("xkcd.com <xkcd.com@xkcd.com>", sanitize_email(&"xkcd.com".to_string(), &"xkcd.com".to_string()));
+        }
+
+        #[test]
+        fn can_create_email_from_sex_at_liberation() {
+            assert_eq!("sexes.blogs.liberation.fr <sexes.blogs.liberation.fr@sexes.blogs.liberation.fr>", 
+                sanitize_email(
+                    &"sexes.blogs.liberation.fr - Derniers articles".to_string(), 
+                    &"sexes.blogs.liberation.fr".to_string()));
+        }
+
+        #[test]
+        fn can_create_email_from_real_address_at_sex_at_liberation() {
+            assert_eq!("Agnès Giard <aniesu.giard@gmail.com>", 
+                sanitize_email(
+                    &"aniesu.giard@gmail.com (Agnès Giard)".to_string(), 
+                    &"sexes.blogs.liberation.fr".to_string()));
+        }
+    }
 }

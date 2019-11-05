@@ -155,6 +155,8 @@ extern crate emailmessage;
 
 extern crate openssl_probe;
 
+extern crate regex;
+
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;
