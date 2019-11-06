@@ -149,7 +149,6 @@ To perform a release, you'll also need
 * [cargo make](https://github.com/sagiegurari/cargo-make#usage-predefined-flows)
 * [cargo release](https://github.com/sunng87/cargo-release)
 * [git journal](https://github.com/saschagrunert/git-journal)
-* [cargo hublish](https://github.com/chasinglogic/cargo-hublish)
 
 #### Installing
 
