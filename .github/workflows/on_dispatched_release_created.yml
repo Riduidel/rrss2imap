@@ -1,0 +1,91 @@
+name: Create release on tag and dispatch to artifact push
+
+on:
+  repository_dispatch:
+    types: [release_created]
+jobs:
+  Standard_OS_build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+#        os: [ubuntu-latest, macOS-latest]
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions/checkout@master
+      # see https://github.com/marketplace/actions/rust-cargo
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+      - uses: olegtarasov/get-tag@v1
+      - name: Upload matrix release asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.client_payload.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_name: rrss2imap_${{ matrix.os }}
+          asset_path: target/release/rrss2imap
+          asset_content_type: application/octet-stream
+    needs: Make_GitHub_Release
+  Windows_build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions/checkout@master
+      # see https://github.com/marketplace/actions/rust-cargo
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+      - uses: olegtarasov/get-tag@v1
+      - name: Upload Windows asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.client_payload.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_name: rrss2imap_${{ matrix.os }}
+          asset_path: target/release/rrss2imap.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
+    needs: Make_GitHub_Release
+  Cross_build_for_Raspbian:
+    name: Build for Raspbian
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: armv7-unknown-linux-gnueabihf
+          override: true
+      - uses: actions/checkout@master
+      # see https://github.com/marketplace/actions/rust-cargo
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --all-features
+      - uses: olegtarasov/get-tag@v1
+      - name: Upload matrix release asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.client_payload.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_name: rrss2imap_${{ matrix.os }}
+          asset_path: target/release/rrss2imap
+          asset_content_type: application/octet-stream
+    needs: Make_GitHub_Release
