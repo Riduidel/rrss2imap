@@ -23,7 +23,6 @@ jobs:
           args: --release --all-features
       - uses: olegtarasov/get-tag@v1
       - name: Upload matrix release asset
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,7 +50,6 @@ jobs:
           args: --release --all-features
       - uses: olegtarasov/get-tag@v1
       - name: Upload Windows asset
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,7 +77,6 @@ jobs:
           args: --release --all-features
       - uses: olegtarasov/get-tag@v1
       - name: Upload matrix release asset
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
