@@ -2,8 +2,6 @@ name: Create release on tag and dispatch to artifact push
 
 on:
   push:
-    branches:
-    - master
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
 
@@ -21,9 +19,3 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: "true"
           prerelease: "false"
-      - name: Dispatch release for artifact upload
-        uses: peter-evans/repository-dispatch@v1.0.0
-        with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          event-type: "release_created"
-          client-payload: '{"upload_url": "${{ steps.create_release.outputs.upload_url }}", "ref": "${{ github.ref }}"}'
