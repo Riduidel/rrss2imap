@@ -22,23 +22,16 @@ jobs:
 
   Standard_OS_build:
 
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Build on ${{ matrix.config.os }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
-        include:
-          - os: ubuntu-latest
-            name: rrss2imap_linux
-            path: target/debug/rrss2imap
-          - os: macOS-latest
-            name: rrss2imap_macOS
-            path: target/debug/rrss2imap
-          - os: windows-latest
-            name: rrss2imap.exe
-            path: target/debug/rrss2imap.exe
+        config:
+          - { os: ubuntu-latest, name: rrss2imap_linux, path: target/debug/rrss2imap}
+          - { os: macOS-latest, name: rrss2imap_macOS, path: target/debug/rrss2imap}
+          - { os: windows-latest, name: rrss2imap.exe, path: target/debug/rrss2imap.exe}
     steps:
-      - run: echo "{{path}}"
+      - run: echo "{{config.path}}"
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -51,8 +44,8 @@ jobs:
       - name: Upload build result for OS
         uses: actions/upload-artifact@v1
         with:
-          name: "{{name}}"
-          path: "{{path}}"
+          name: "{{config.name}}"
+          path: "{{config.path}}"
     needs: Run_cargo_tests
 
   Cross_build:
