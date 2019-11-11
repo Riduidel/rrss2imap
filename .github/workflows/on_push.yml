@@ -15,10 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@master
       # see https://github.com/marketplace/actions/rust-cargo
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features
+#      - uses: actions-rs/cargo@v1
+#        with:
+#          command: test
+#          args: --all-features
 
   Standard_OS_build:
 
