@@ -1,8 +1,8 @@
-name: Create release on tag and dispatch to artifact push
+name: Upload all artifacts to release
 
 on:
   release:
-    types: [created]
+    types: [published]
 jobs:
   Standard_OS_build:
     name: Build on ${{ matrix.os }}
