@@ -89,7 +89,8 @@ jobs:
           use-cross: true
           command: build
           args: --all-features --target armv7-unknown-linux-gnueabihf
-      - run: cd target && find .
+      - run: ls -lha target/armv7-unknown-linux-gnueabihf
+      - run: ls -lha target/armv7-unknown-linux-gnueabihf/debug
       - name: Upload build result for Raspbian
         uses: actions/upload-artifact@v1
         with:
