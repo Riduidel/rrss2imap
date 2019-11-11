@@ -82,6 +82,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_name: rrss2imap_${{ matrix.os }}
+          asset_name: rrss2imap_raspbian-latest
           asset_path: target/release/rrss2imap
           asset_content_type: application/octet-stream
