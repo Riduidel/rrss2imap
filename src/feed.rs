@@ -333,17 +333,18 @@ fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
 
 fn sanitize_email(email:&String, domain:&String)->String {
     lazy_static! {
-        static ref email_and_name_detector:Regex = 
+        static ref EMAIL_AND_NAME_DETECTOR:Regex = 
             Regex::new("([[:alpha:]_%\\+\\-\\.]+@[[:alpha:]_%\\+\\-]+\\.[[:alpha:]_%\\+\\-]+{1,}) \\(([^\\)]*)\\)").unwrap();
     }
-    if email_and_name_detector.is_match(email) {
-        let captures = email_and_name_detector.captures(email).unwrap();
+    if EMAIL_AND_NAME_DETECTOR.is_match(email) {
+        let captures = EMAIL_AND_NAME_DETECTOR.captures(email).unwrap();
         return format!("{} <{}>", captures.get(2).unwrap().as_str(), captures.get(1).unwrap().as_str());
     } else {
         let email = trim_to_chars(email, vec!["|", ":", "-"]);
         let tuple = (email.clone(),
         unidecode(&email).to_lowercase() // second element of tuple is generated user address
                     .replace(" ", "_")
+                    .replace(",", "_")
                 );
         return format!("{} <{}@{}>", tuple.0, tuple.1, domain);
     }
