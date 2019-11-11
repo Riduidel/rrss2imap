@@ -26,59 +26,44 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+        include:
+          - os: windows-latest
+            target: i586-pc-windows-msvc
+            name: rrss2imap_windows_i586.exe
+            path: target/debug/rrss2imap.exe
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            name: rrss2imap_windows_i686.exe
+            path: target/debug/rrss2imap.exe
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: rrss2imap_windows_x86_64.exe
+            path: target/debug/rrss2imap.exe
+          - os: macOS-latest
+            target: i686-apple-darwin
+            name: rrss2imap_apple_i686.exe
+            path: target/debug/rrss2imap
+          - os: macOS-latest
+            target: x86_64-apple-darwin
+            name: rrss2imap_apple_x86_64.exe
+            path: target/debug/rrss2imap
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            name: rrss2imap_linux_x86_64
+            path: target/debug/rrss2imap
+          - os: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+            name: rrss2imap_linux_armv7
+            path: target/debug/rrss2imap
     steps:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: actions/checkout@master
-      # see https://github.com/marketplace/actions/rust-cargo
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all-features
-      - name: Upload build result for OS
-        uses: actions/upload-artifact@v1
-        with:
-          name: rrss2imap_${{ matrix.os }}
-          path: target/debug/rrss2imap
-    needs: Run_cargo_tests
-
-  Windows_build:
-
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest]
-
-    steps:
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - uses: actions/checkout@master
-      # see https://github.com/marketplace/actions/rust-cargo
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all-features
-      - name: Upload build result for OS
-        uses: actions/upload-artifact@v1
-        with:
-          name: rrss2imap_${{ matrix.os }}
-          path: target/debug/rrss2imap.exe
-    needs: Run_cargo_tests
-
-  Cross_build_for_Raspbian:
-
-    name: Build for Raspbian
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: armv7-unknown-linux-gnueabihf
+          target: "{{target}}"
           override: true
       - uses: actions/checkout@master
       # see https://github.com/marketplace/actions/rust-cargo
@@ -90,6 +75,5 @@ jobs:
       - name: Upload build result for Raspbian
         uses: actions/upload-artifact@v1
         with:
-          name: rrss2imap_armv7-unknown-linux-gnueabihf
-          path: target/debug/rrss2imap
-    needs: Run_cargo_tests
+          name: "{{name}}"
+          path: "{{path}}"
