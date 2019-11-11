@@ -31,7 +31,7 @@ jobs:
           - { os: macOS-latest, name: rrss2imap_macOS, path: target/debug/rrss2imap}
           - { os: windows-latest, name: rrss2imap.exe, path: target/debug/rrss2imap.exe}
     steps:
-      - run: echo "{{config.path}}"
+      - run: echo ${{matrix.config.path}}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -44,8 +44,8 @@ jobs:
       - name: Upload build result for OS
         uses: actions/upload-artifact@v1
         with:
-          name: "{{config.name}}"
-          path: "{{config.path}}"
+          name: ${{matrix.config.name}}
+          path: ${{matrix.config.path}}
     needs: Run_cargo_tests
 
   Cross_build:
