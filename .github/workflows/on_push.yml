@@ -38,6 +38,7 @@ jobs:
             name: rrss2imap.exe
             path: target/debug/rrss2imap.exe
     steps:
+      - run: echo "{{path}}"
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -50,8 +51,8 @@ jobs:
       - name: Upload build result for OS
         uses: actions/upload-artifact@v1
         with:
-          name: {{name}}
-          path: {{path}}
+          name: "{{name}}"
+          path: "{{path}}"
     needs: Run_cargo_tests
 
   Cross_build:
