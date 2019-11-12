@@ -119,13 +119,13 @@ impl Store {
     /// Each feed is read and immediatly written in this thread.
     /// This should be rewritten to allow optimization/parallelism
     pub fn run(&mut self) {
+        self.dirty = true;
         // Initialize mail server before processing feeds
         self.feeds = self
             .feeds
             .iter()
             .map(|f| f.read(&self.settings))
             .collect::<Vec<Feed>>();
-        self.dirty = true;
     }
 
     /// Prints all the feeds to stdout.
