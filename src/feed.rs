@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, NaiveDate, Utc};
+use chrono::{DateTime, NaiveDateTime, NaiveDate, Utc, Local};
 
 use super::config::*;
 
@@ -230,10 +230,12 @@ fn extract_date_from_rss(entry: &RssItem) -> NaiveDateTime {
         let mut pub_date = entry.pub_date().unwrap().to_owned();
         pub_date = pub_date.replace("UTC", "UT");
         return rfc822_sanitizer::parse_from_rfc2822_with_fallback(&pub_date).unwrap_or_else(|e| {
-            panic!(
-                "pub_date for item {:?} (value is {:?}) can't be parsed due to error {:?}",
-                &entry, pub_date, e
-                )
+            DateTime::parse_from_rfc3339(&pub_date).unwrap_or_else(|e| {
+                    panic!(
+                        "pub_date for item {:?} (value is {:?}) can't be parsed.due to error {:?}",
+                        &entry, pub_date, e
+                    )
+                })
             }) .naive_utc();
     } else if entry.dublin_core_ext().is_some()
         && entry.dublin_core_ext().unwrap().dates().len() > 0
