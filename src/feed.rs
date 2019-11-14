@@ -342,6 +342,13 @@ fn sanitize_email(email:&String, domain:&String)->String {
         let captures = EMAIL_AND_NAME_DETECTOR.captures(email).unwrap();
         return format!("{} <{}>", captures.get(2).unwrap().as_str(), captures.get(1).unwrap().as_str());
     } else {
+        // When no email is provided, use domain name
+        let email = if email.is_empty() {
+            domain
+        } else {
+            email
+        };
+        // Remove bad characters
         let email = trim_to_chars(email, vec!["|", ":", "-", "<", ">"]);
         let tuple = (email.clone(),
         unidecode(&email).to_lowercase() // second element of tuple is generated user address
