@@ -213,7 +213,7 @@ fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
     } else {
         links[0].clone()
     };
-    let last_date = extract_date_from_rss(entry);
+    let last_date = extract_date_from_rss(entry, feed);
     let message = Message {
         authors: authors,
         content: content,
@@ -225,7 +225,7 @@ fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
     return message;
 }
 
-fn extract_date_from_rss(entry: &RssItem) -> NaiveDateTime {
+fn extract_date_from_rss(entry: &RssItem, feed: &RssChannel) -> NaiveDateTime {
     if entry.pub_date().is_some() {
         let mut pub_date = entry.pub_date().unwrap().to_owned();
         pub_date = pub_date.replace("UTC", "UT");
@@ -250,10 +250,32 @@ fn extract_date_from_rss(entry: &RssItem) -> NaiveDateTime {
             })
             .naive_utc();
     } else {
-        panic!(
-            "feed item {:?} can't be parsed, as it doesn't have neither pub_date nor dc:pub_date",
-            &entry
+        error!("feed item {:?} date can't be parsed, as it doesn't have neither pub_date nor dc:pub_date. We will replace it with feed date if possible",
+            &entry.link()
         );
+        if feed.pub_date().is_some() {
+            let pub_date = feed.pub_date().unwrap();
+            return rfc822_sanitizer::parse_from_rfc2822_with_fallback(pub_date).unwrap_or_else(|e| {
+                DateTime::parse_from_rfc3339(pub_date).unwrap_or_else(|e| {
+                        panic!(
+                            "pub_date for feed {:?} (value is {:?}) can't be parsed.due to error {:?}",
+                            &entry, pub_date, e
+                        )
+                    })
+                }) .naive_utc();
+        } else if feed.last_build_date().is_some() {
+            let last_pub_date:&str = &feed.last_build_date().unwrap();
+            return rfc822_sanitizer::parse_from_rfc2822_with_fallback(last_pub_date).unwrap_or_else(|e| {
+                DateTime::parse_from_rfc3339(last_pub_date).unwrap_or_else(|e| {
+                        panic!(
+                            "last_build_date for feed {:?} (value is {:?}) can't be parsed.due to error {:?}",
+                            &entry, last_pub_date, e
+                        )
+                    })
+                }) .naive_utc();
+        } else {
+            panic!("absolutly can't parse feed date from {}", feed.link());
+        }
     }
 }
 
