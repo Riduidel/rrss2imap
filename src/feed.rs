@@ -309,6 +309,7 @@ fn find_atom_domain(feed: &AtomFeed) -> String {
         .links()
         .iter()
         .filter(|link| link.rel() == "self" || link.rel() == "alternate")
+        .filter(|link| !link.href().is_empty())
         .next()
         // Get the link
         .map(|link| link.href())
