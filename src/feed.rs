@@ -173,6 +173,7 @@ impl Feed {
                 extracted.iter()
                     .filter(|e| e.is_ok())
                     .map(|e| e.as_ref().unwrap())
+                    .filter(|m| m.last_date>self.last_updated)
                     .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
                 return Feed {
                     url: self.url.clone(),
