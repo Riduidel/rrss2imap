@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, NaiveDate, Utc, Local};
+use chrono::{DateTime, NaiveDateTime, NaiveDate, Utc, FixedOffset};
 
 use super::config::*;
 
@@ -12,6 +12,15 @@ use rss::Item as RssItem;
 use url::Url;
 use unidecode::unidecode;
 use regex::Regex;
+use custom_error::custom_error;
+
+custom_error!{UnparseableDate
+    DateIsNotRFC2822{value:String} = "Date {value} is not RFC-2822 compliant",
+    DateIsNotRFC3339{value:String} = "Date {value} is not RFC-3339 compliant",
+    DateIsNeitherRFC2822NorRFC3339{value:String} = "Date {value} is neither RFC-2822 nor RFC-3339 compliant",
+    ChronoCantParse{source: chrono::ParseError} = "chrono can't parse date",
+    NoDateFound = "absolutly no date field was found in feed"
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
@@ -152,21 +161,35 @@ impl Feed {
         );
         if feed_date > self.last_updated {
             info!("There should be new entries, parsing HTML content");
-            feed.items()
+            let extracted:Vec<Result<Message, UnparseableDate>> = feed.items()
                 .iter()
                 .map(|e| extract_from_rss(e, &feed))
-                .filter(|e| e.last_date >= self.last_updated)
-                .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
-            return Feed {
-                url: self.url.clone(),
-                config: self.config.clone(),
-                last_updated: if settings.do_not_save {
-                    warn!("do_not_save is set. As a consequence, feed won't be updated");
-                    self.last_updated
-                } else {
-                    feed_date
-                },
-            };
+                .collect();
+            
+            let date_errors = extracted.iter()
+                .filter(|e| e.is_err())
+                .fold(0, |acc, _| acc + 1);
+            if date_errors==0 {
+                extracted.iter()
+                    .filter(|e| e.is_ok())
+                    .map(|e| e.as_ref().unwrap())
+                    .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
+                return Feed {
+                    url: self.url.clone(),
+                    config: self.config.clone(),
+                    last_updated: if settings.do_not_save {
+                        warn!("do_not_save is set. As a consequence, feed won't be updated");
+                        self.last_updated
+                    } else {
+                        feed_date
+                    },
+                };
+            } else {
+                warn!("There were problems getting content from feed {}. It may not be complete ...
+                I strongly suggest you enter an issue on GitHub by following this link
+                https://github.com/Riduidel/rrss2imap/issues/new?title=Incorrect%20feed&body=Feed%20at%20url%20{}%20doesn't%20seems%20to%20be%20parseable", 
+                self.url, self.url);
+            }
         }
         self.clone()
     }
@@ -192,7 +215,7 @@ fn find_rss_domain(feed: &RssChannel) -> String {
         .unwrap_or("todo.find.domain.atom".to_string());
 }
 
-fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
+fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Result<Message, UnparseableDate> {
     let authors = extract_authors_from_rss(entry, feed);
     let content = entry
         .content()
@@ -218,63 +241,49 @@ fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Message {
         authors: authors,
         content: content,
         id: id,
-        last_date: last_date,
+        last_date: last_date?.naive_utc(),
         links: links,
         title: entry.title().unwrap_or("").to_owned(),
     };
-    return message;
+    return Ok(message);
 }
 
-fn extract_date_from_rss(entry: &RssItem, feed: &RssChannel) -> NaiveDateTime {
+fn try_hard_to_parse(date:String) -> Result<DateTime<FixedOffset>, UnparseableDate> {
+    let parsed = rfc822_sanitizer::parse_from_rfc2822_with_fallback(&date);
+    if parsed.is_ok() {
+        return Ok(parsed?);
+    } else {
+        let retry = DateTime::parse_from_rfc3339(&date);
+        if retry.is_ok() {
+            return Ok(retry?);
+        } else {
+            return Err(UnparseableDate::DateIsNeitherRFC2822NorRFC3339 {value:date});
+        }
+    }
+}
+
+fn extract_date_from_rss(entry: &RssItem, feed: &RssChannel) -> Result<DateTime<FixedOffset>, UnparseableDate> {
     if entry.pub_date().is_some() {
         let mut pub_date = entry.pub_date().unwrap().to_owned();
         pub_date = pub_date.replace("UTC", "UT");
-        return rfc822_sanitizer::parse_from_rfc2822_with_fallback(&pub_date).unwrap_or_else(|e| {
-            DateTime::parse_from_rfc3339(&pub_date).unwrap_or_else(|e| {
-                    panic!(
-                        "pub_date for item {:?} (value is {:?}) can't be parsed.due to error {:?}",
-                        &entry, pub_date, e
-                    )
-                })
-            }) .naive_utc();
+        return try_hard_to_parse(pub_date);
     } else if entry.dublin_core_ext().is_some()
         && entry.dublin_core_ext().unwrap().dates().len() > 0
     {
         let pub_date = &entry.dublin_core_ext().unwrap().dates()[0];
-        return DateTime::parse_from_rfc3339(&pub_date)
-            .unwrap_or_else(|e| {
-                panic!(
-                    "dc:pub_date for item {:?} (value is {:?}) can't be parsed.due to error {:?}",
-                    &entry, pub_date, e
-                )
-            })
-            .naive_utc();
+        return Ok(DateTime::parse_from_rfc3339(&pub_date)?);
     } else {
         error!("feed item {:?} date can't be parsed, as it doesn't have neither pub_date nor dc:pub_date. We will replace it with feed date if possible",
             &entry.link()
         );
         if feed.pub_date().is_some() {
-            let pub_date = feed.pub_date().unwrap();
-            return rfc822_sanitizer::parse_from_rfc2822_with_fallback(pub_date).unwrap_or_else(|e| {
-                DateTime::parse_from_rfc3339(pub_date).unwrap_or_else(|e| {
-                        panic!(
-                            "pub_date for feed {:?} (value is {:?}) can't be parsed.due to error {:?}",
-                            &entry, pub_date, e
-                        )
-                    })
-                }) .naive_utc();
+            let pub_date = feed.pub_date().unwrap().to_owned();
+            return try_hard_to_parse(pub_date);
         } else if feed.last_build_date().is_some() {
-            let last_pub_date:&str = &feed.last_build_date().unwrap();
-            return rfc822_sanitizer::parse_from_rfc2822_with_fallback(last_pub_date).unwrap_or_else(|e| {
-                DateTime::parse_from_rfc3339(last_pub_date).unwrap_or_else(|e| {
-                        panic!(
-                            "last_build_date for feed {:?} (value is {:?}) can't be parsed.due to error {:?}",
-                            &entry, last_pub_date, e
-                        )
-                    })
-                }) .naive_utc();
+            let last_pub_date = feed.last_build_date().unwrap().to_owned();
+            return try_hard_to_parse(last_pub_date);
         } else {
-            panic!("absolutly can't parse feed date from {}", feed.link());
+            return Err(UnparseableDate::NoDateFound);
         }
     }
 }

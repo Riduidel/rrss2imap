@@ -157,6 +157,8 @@ extern crate openssl_probe;
 
 extern crate regex;
 
+extern crate custom_error;
+
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;
