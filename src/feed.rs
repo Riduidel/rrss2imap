@@ -10,11 +10,10 @@ use atom_syndication::Feed as AtomFeed;
 use rss::Channel as RssChannel;
 use rss::Item as RssItem;
 use url::Url;
-use unidecode::unidecode;
 use regex::Regex;
 use custom_error::custom_error;
 
-custom_error!{UnparseableDate
+custom_error!{UnparseableFeed
     DateIsNotRFC2822{value:String} = "Date {value} is not RFC-2822 compliant",
     DateIsNotRFC3339{value:String} = "Date {value} is not RFC-3339 compliant",
     DateIsNeitherRFC2822NorRFC3339{value:String} = "Date {value} is neither RFC-2822 nor RFC-3339 compliant",
@@ -161,7 +160,7 @@ impl Feed {
         );
         if feed_date > self.last_updated {
             info!("There should be new entries, parsing HTML content");
-            let extracted:Vec<Result<Message, UnparseableDate>> = feed.items()
+            let extracted:Vec<Result<Message, UnparseableFeed>> = feed.items()
                 .iter()
                 .map(|e| extract_from_rss(e, &feed))
                 .collect();
@@ -216,7 +215,7 @@ fn find_rss_domain(feed: &RssChannel) -> String {
         .unwrap_or("todo.find.domain.atom".to_string());
 }
 
-fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Result<Message, UnparseableDate> {
+fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Result<Message, UnparseableFeed> {
     let authors = extract_authors_from_rss(entry, feed);
     let content = entry
         .content()
@@ -249,7 +248,7 @@ fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Result<Message, Unpar
     return Ok(message);
 }
 
-fn try_hard_to_parse(date:String) -> Result<DateTime<FixedOffset>, UnparseableDate> {
+fn try_hard_to_parse(date:String) -> Result<DateTime<FixedOffset>, UnparseableFeed> {
     let parsed = rfc822_sanitizer::parse_from_rfc2822_with_fallback(&date);
     if parsed.is_ok() {
         return Ok(parsed?);
@@ -258,12 +257,12 @@ fn try_hard_to_parse(date:String) -> Result<DateTime<FixedOffset>, UnparseableDa
         if retry.is_ok() {
             return Ok(retry?);
         } else {
-            return Err(UnparseableDate::DateIsNeitherRFC2822NorRFC3339 {value:date});
+            return Err(UnparseableFeed::DateIsNeitherRFC2822NorRFC3339 {value:date});
         }
     }
 }
 
-fn extract_date_from_rss(entry: &RssItem, feed: &RssChannel) -> Result<DateTime<FixedOffset>, UnparseableDate> {
+fn extract_date_from_rss(entry: &RssItem, feed: &RssChannel) -> Result<DateTime<FixedOffset>, UnparseableFeed> {
     if entry.pub_date().is_some() {
         let mut pub_date = entry.pub_date().unwrap().to_owned();
         pub_date = pub_date.replace("UTC", "UT");
@@ -284,7 +283,7 @@ fn extract_date_from_rss(entry: &RssItem, feed: &RssChannel) -> Result<DateTime<
             let last_pub_date = feed.last_build_date().unwrap().to_owned();
             return try_hard_to_parse(last_pub_date);
         } else {
-            return Err(UnparseableDate::NoDateFound);
+            return Err(UnparseableFeed::NoDateFound);
         }
     }
 }
