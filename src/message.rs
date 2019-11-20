@@ -9,6 +9,18 @@ use tera::Tera;
 use kuchiki::traits::*;
 
 use emailmessage::{header, Message as Email, SinglePart};
+use emailmessage::header::EmailDate;
+use emailmessage::Mailbox;
+
+use custom_error::custom_error;
+
+custom_error!{UnprocessableMessage
+    CantPutDateInMessage{ value:String } = "EmailMessage can't parse date from {value}",
+    CantPutFirstAuthorInMessage { value:String } = "Unable to parse first author {value}.
+    Please consider adding in feed config the \"from\": ... field",
+    CantWriteTransformedMessage = "Can't re-write transformed message after image Base64'ing"
+}
+
 
 lazy_static! {
     pub static ref TERA: Tera = {
@@ -36,24 +48,34 @@ impl Message {
     pub fn write_to_imap(&self, feed: &Feed, settings: &Settings) {
         let folder = feed.config.get_folder(&settings.config);
         let content = self.build_message(feed, settings);
-        debug!("===========================\nWriting message content to IMAP\n{}\n===========================", content);
-        match settings.email.append(&folder, &content) {
-            Ok(_) => debug!("Successfully written {}", self.title),
-            Err(e) => error!(
-                "{}\nUnable to select mailbox {}. Item titled {} won't be written",
-                e, &folder, self.title
-            ),
+        match content {
+            Ok(text) => {
+                debug!("===========================\nWriting message content to IMAP\n{}\n===========================", 
+                    text);
+                match settings.email.append(&folder, &text) {
+                    Ok(_) => debug!("Successfully written {}", self.title),
+                    Err(e) => error!(
+                        "{}\nUnable to select mailbox {}. Item titled {} won't be written",
+                        e, &folder, self.title
+                    ),
+                }
+            },
+            Err(error) => {
+                warn!("Couldn(t write message {:?} from feed {} due to {}", self.links, feed.url, error);
+            }
         }
     }
 
-    fn build_message(&self, feed: &Feed, settings: &Settings) -> String {
-        let content = self.extract_content(feed, settings);
+    fn build_message(&self, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
+        let content = self.extract_content(feed, settings)?;
         debug!("===========================\nCreating message content\n{}\n===========================", content);
-        let mut builder = Email::builder().subject(&*self.title).date(
-            self.date_text()
-                .parse()
-                .expect(&format!("Unable to parse date text {}", self.date_text())),
-        );
+        let date:Result<EmailDate, _> = self.date_text().parse();
+        if date.is_err() {
+            return Err(UnprocessableMessage::CantPutDateInMessage { value : self.date_text() });
+        }
+        let mut builder = Email::builder()
+            .subject(&*self.title)
+            .date(date.unwrap());
 
         match &feed.config.from {
             Some(from) => {
@@ -64,12 +86,11 @@ impl Message {
                     builder = builder.from("what@what.com".parse().unwrap());
                 } else {
                     let first_author = &self.authors[0];
-                    builder = builder.from(first_author.parse().expect(&format!(
-                        r##"Unable to parse first author {}.
-Please consider adding in feed config the \"from\": ... field
-Initial error is"##,
-                        first_author
-                    )));
+                    let parsed_first_author:Result<Mailbox, _> = first_author.parse();
+                    if parsed_first_author.is_err() {
+                        return Err(UnprocessableMessage::CantPutFirstAuthorInMessage { value : first_author.clone() });
+                    }
+                    builder = builder.from(parsed_first_author.unwrap());
                 }
             }
         }
@@ -82,14 +103,14 @@ Initial error is"##,
                 .header(header::ContentTransferEncoding::QuotedPrintable)
                 .body(content),
         );
-        email.to_string()
+        Ok(email.to_string())
     }
 
     /// Makes a valid HTML file out of the given Item.
     /// This method provides all the transformation that should happen
-    fn extract_content(&self, feed: &Feed, settings: &Settings) -> String {
-        TERA.render("message.html", &self.build_context(feed, settings))
-            .unwrap()
+    fn extract_content(&self, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
+        Ok(TERA.render("message.html", &self.build_context(feed, settings)?)
+            .unwrap())
     }
 
     ///
@@ -97,31 +118,38 @@ Initial error is"##,
     /// This should allow
     /// * image transformation into base64 when needed
     ///
-    fn get_processed_content(&self, feed: &Feed, settings: &Settings) -> String {
-        let mut document = kuchiki::parse_html().one(self.content.clone());
+    fn get_processed_content(&self, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
         if feed.config.inline_image_as_data || settings.config.inline_image_as_data {
+            let mut document = kuchiki::parse_html().one(self.content.clone());
             // So, take content, pass it through html5ever (thanks to select, and transform each image !)
             debug!("We should inline image as base64 data for {}", self.id);
             document = image_to_data::transform(document, feed, settings);
+            let mut bytes = vec![];
+            if document.serialize(&mut bytes).is_err() {
+                return Err(UnprocessableMessage::CantWriteTransformedMessage);
+            }
+            return Ok(String::from_utf8(bytes).unwrap());
+        } else {
+            return Ok(self.content.clone());
         }
-        let mut bytes = vec![];
-        document.serialize(&mut bytes).expect(&format!(
-            "Unable to read entry {:?} of feed {}\nConsider sending a bug report !",
-            self.links, feed.url
-        ));
-        return String::from_utf8(bytes).unwrap();
     }
 
-    fn build_context(&self, feed: &Feed, settings: &Settings) -> Context {
+    fn build_context(&self, feed: &Feed, settings: &Settings) -> Result<Context, UnprocessableMessage> {
         let mut context = Context::new();
-        context.insert("feed_entry", &self.get_processed_content(feed, settings));
-        context.insert("links", &self.links);
-        context.insert("id", &self.id);
-        context.insert("title", &self.title);
-        context.insert("from", &self.authors);
-        context.insert("to", &feed.config.get_email(&settings.config));
-        context.insert("date", &self.date_text());
-        context
+        let parsed:Result<String, UnprocessableMessage> = self.get_processed_content(feed, settings);
+        match parsed {
+            Ok(text) => {
+                context.insert("feed_entry", &text);
+                context.insert("links", &self.links);
+                context.insert("id", &self.id);
+                context.insert("title", &self.title);
+                context.insert("from", &self.authors);
+                context.insert("to", &feed.config.get_email(&settings.config));
+                context.insert("date", &self.date_text());
+                return Ok(context)
+            },
+            Err(error) => return Err(error)
+        }
     }
 
     fn date_text(&self) -> String {
