@@ -7,22 +7,44 @@ on:
       - published
 jobs:
   Standard_OS_build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+
+    name: Build ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-#        os: [ubuntu-latest, macOS-latest]
+        config:
+          - { os: ubuntu-latest, name: rrss2imap_linux, path: target/debug/rrss2imap}
+          - { os: macOS-latest, name: rrss2imap_macOS, path: target/debug/rrss2imap}
+          - { os: windows-latest, name: rrss2imap.exe, path: target/debug/rrss2imap.exe}
+          # And this one is the dreaded Raspbian one ...
+          - { os: ubuntu-latest, name: rrss2imap_raspbian, path: target/armv7-unknown-linux-gnueabihf/debug/rrss2imap, target: armv7-unknown-linux-gnueabihf, linker: gcc-arm-linux-gnueabihf}
     steps:
+      - name: Install linker
+        run: sudo apt-get install -qq ${{matrix.config.linker}}
+        if: matrix.config.linker!=null
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          target: armv7-unknown-linux-gnueabihf
+          override: true
+        if: matrix.config.target!=null
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+        if: matrix.config.target==null
       - uses: actions/checkout@master
       # see https://github.com/marketplace/actions/rust-cargo
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --all-features
+          args: --all-features
+        if: matrix.config.target==null
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --all-features --target ${{matrix.config.target}}
+        if: matrix.config.target!=null
       - uses: olegtarasov/get-tag@v1
       - name: Upload matrix release asset
         uses: actions/upload-release-asset@v1.0.1
@@ -31,57 +53,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_name: rrss2imap_${{ matrix.os }}
-          asset_path: target/release/rrss2imap
-          asset_content_type: application/octet-stream
-  Windows_build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest]
-    steps:
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - uses: actions/checkout@master
-      # see https://github.com/marketplace/actions/rust-cargo
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-features
-      - uses: olegtarasov/get-tag@v1
-      - name: Upload Windows asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_name: rrss2imap.exe
-          asset_path: target/release/rrss2imap.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
-  Cross_build_for_Raspbian:
-    name: Build for Raspbian
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: armv7-unknown-linux-gnueabihf
-          override: true
-      - uses: actions/checkout@master
-      # see https://github.com/marketplace/actions/rust-cargo
-      - uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --release --all-features
-      - uses: olegtarasov/get-tag@v1
-      - name: Upload matrix release asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_name: rrss2imap_raspbian-latest
           asset_path: target/release/rrss2imap
           asset_content_type: application/octet-stream
