@@ -1683,7 +1683,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rrss2imap"
-version = "0.2.35-alpha.0"
+version = "0.2.35"
 dependencies = [
  "assert_cli 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "atom_syndication 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
