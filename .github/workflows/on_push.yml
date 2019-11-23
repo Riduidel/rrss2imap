@@ -52,15 +52,14 @@ jobs:
         with:
           command: build
           # temp
-          args: --release --all-features
+          args: --all-features
         if: matrix.config.target==null
       - uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
-          args: --release --all-features --target ${{matrix.config.target}}
+          args: --all-features --target ${{matrix.config.target}}
         if: matrix.config.target!=null
-      - run: find .
       - name: Upload build result for OS
         uses: actions/upload-artifact@v1
         with:
