@@ -57,8 +57,9 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --all-features --target ${{matrix.config.target}}
+          args: --release --all-features --target ${{matrix.config.target}}
         if: matrix.config.target!=null
+      - run: find .
       - name: Upload build result for OS
         uses: actions/upload-artifact@v1
         with:
