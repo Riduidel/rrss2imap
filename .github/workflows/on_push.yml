@@ -51,7 +51,8 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features
+          # temp
+          args: --release --all-features
         if: matrix.config.target==null
       - uses: actions-rs/cargo@v1
         with:
