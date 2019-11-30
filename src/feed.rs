@@ -120,25 +120,21 @@ impl Feed {
             "Feed date is {} while previous read date is {}",
             feed_date, self.last_updated
         );
-        if feed_date > self.last_updated {
-            info!("There should be new entries, parsing HTML content");
-            feed.entries()
-                .iter()
-                .map(|e| extract_from_atom(e, &feed))
-                .filter(|e| e.last_date >= self.last_updated)
-                .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
-            return Feed {
-                url: self.url.clone(),
-                config: self.config.clone(),
-                last_updated: if settings.do_not_save {
-                    warn!("do_not_save is set. As a consequence, feed won't be updated");
-                    self.last_updated
-                } else {
-                    feed_date
-                },
-            };
-        }
-        self.clone()
+        feed.entries()
+            .iter()
+            .map(|e| extract_from_atom(e, &feed))
+            .filter(|e| e.last_date >= self.last_updated)
+            .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
+        return Feed {
+            url: self.url.clone(),
+            config: self.config.clone(),
+            last_updated: if settings.do_not_save {
+                warn!("do_not_save is set. As a consequence, feed won't be updated");
+                self.last_updated
+            } else {
+                feed_date
+            },
+        };
     }
 
     fn read_rss(&self, feed: RssChannel, settings: &Settings) -> Feed {
@@ -158,40 +154,37 @@ impl Feed {
             "Feed date is {} while previous read date is {}",
             feed_date, self.last_updated
         );
-        if feed_date > self.last_updated {
-            info!("There should be new entries, parsing HTML content");
-            let extracted:Vec<Result<Message, UnparseableFeed>> = feed.items()
-                .iter()
-                .map(|e| extract_from_rss(e, &feed))
-                .collect();
-            
-            let date_errors = extracted.iter()
-                .filter(|e| e.is_err())
-                .fold(0, |acc, _| acc + 1);
-            if date_errors==0 {
-                extracted.iter()
-                    .filter(|e| e.is_ok())
-                    .map(|e| e.as_ref().unwrap())
-                    .filter(|m| m.last_date>self.last_updated)
-                    .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
-                return Feed {
-                    url: self.url.clone(),
-                    config: self.config.clone(),
-                    last_updated: if settings.do_not_save {
-                        warn!("do_not_save is set. As a consequence, feed won't be updated");
-                        self.last_updated
-                    } else {
-                        feed_date
-                    },
-                };
-            } else {
-                warn!("There were problems getting content from feed {}. It may not be complete ...
-                I strongly suggest you enter an issue on GitHub by following this link
-                https://github.com/Riduidel/rrss2imap/issues/new?title=Incorrect%20feed&body=Feed%20at%20url%20{}%20doesn't%20seems%20to%20be%20parseable", 
-                self.url, self.url);
-            }
+        let extracted:Vec<Result<Message, UnparseableFeed>> = feed.items()
+            .iter()
+            .map(|e| extract_from_rss(e, &feed))
+            .collect();
+        
+        let date_errors = extracted.iter()
+            .filter(|e| e.is_err())
+            .fold(0, |acc, _| acc + 1);
+        if date_errors==0 {
+            extracted.iter()
+                .filter(|e| e.is_ok())
+                .map(|e| e.as_ref().unwrap())
+                .filter(|m| m.last_date>self.last_updated)
+                .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
+            return Feed {
+                url: self.url.clone(),
+                config: self.config.clone(),
+                last_updated: if settings.do_not_save {
+                    warn!("do_not_save is set. As a consequence, feed won't be updated");
+                    self.last_updated
+                } else {
+                    feed_date
+                },
+            };
+        } else {
+            warn!("There were problems getting content from feed {}. It may not be complete ...
+            I strongly suggest you enter an issue on GitHub by following this link
+            https://github.com/Riduidel/rrss2imap/issues/new?title=Incorrect%20feed&body=Feed%20at%20url%20{}%20doesn't%20seems%20to%20be%20parseable", 
+            self.url, self.url);
+            return self.clone();
         }
-        self.clone()
     }
 }
 
