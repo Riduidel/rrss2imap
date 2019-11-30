@@ -13,7 +13,8 @@ use url::Url;
 use regex::Regex;
 use custom_error::custom_error;
 
-custom_error!{UnparseableFeed
+custom_error!{
+    UnparseableFeed
     DateIsNotRFC2822{value:String} = "Date {value} is not RFC-2822 compliant",
     DateIsNotRFC3339{value:String} = "Date {value} is not RFC-3339 compliant",
     DateIsNeitherRFC2822NorRFC3339{value:String} = "Date {value} is neither RFC-2822 nor RFC-3339 compliant",
@@ -120,21 +121,26 @@ impl Feed {
             "Feed date is {} while previous read date is {}",
             feed_date, self.last_updated
         );
-        feed.entries()
+        return feed.entries()
             .iter()
             .map(|e| extract_from_atom(e, &feed))
-            .filter(|e| e.last_date >= self.last_updated)
-            .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
-        return Feed {
-            url: self.url.clone(),
-            config: self.config.clone(),
-            last_updated: if settings.do_not_save {
-                warn!("do_not_save is set. As a consequence, feed won't be updated");
-                self.last_updated
-            } else {
-                feed_date
-            },
-        };
+            .filter(|e| e.last_date > self.last_updated)
+            .inspect(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } )
+            .map(|e| e.last_date)
+            .max()
+            .map_or_else(
+                || self.clone(),
+                |feed_date| Feed {
+                    url: self.url.clone(),
+                    config: self.config.clone(),
+                    last_updated: if settings.do_not_save {
+                        warn!("do_not_save is set. As a consequence, feed won't be updated");
+                        self.last_updated
+                    } else {
+                        feed_date
+                    },
+                }
+            );
     }
 
     fn read_rss(&self, feed: RssChannel, settings: &Settings) -> Feed {
@@ -158,26 +164,31 @@ impl Feed {
             .iter()
             .map(|e| extract_from_rss(e, &feed))
             .collect();
-        
+
         let date_errors = extracted.iter()
             .filter(|e| e.is_err())
             .fold(0, |acc, _| acc + 1);
         if date_errors==0 {
-            extracted.iter()
+            return extracted.iter()
                 .filter(|e| e.is_ok())
                 .map(|e| e.as_ref().unwrap())
                 .filter(|m| m.last_date>self.last_updated)
-                .for_each(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } );
-            return Feed {
-                url: self.url.clone(),
-                config: self.config.clone(),
-                last_updated: if settings.do_not_save {
-                    warn!("do_not_save is set. As a consequence, feed won't be updated");
-                    self.last_updated
-                } else {
-                    feed_date
-                },
-            };
+                .inspect(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } )
+                .map(|e| e.last_date)
+                .max()
+                .map_or_else(
+                    || self.clone(),
+                    |feed_date| Feed {
+                        url: self.url.clone(),
+                        config: self.config.clone(),
+                        last_updated: if settings.do_not_save {
+                            warn!("do_not_save is set. As a consequence, feed won't be updated");
+                            self.last_updated
+                        } else {
+                            feed_date
+                        }
+                    }
+                );
         } else {
             warn!("There were problems getting content from feed {}. It may not be complete ...
             I strongly suggest you enter an issue on GitHub by following this link
