@@ -77,4 +77,13 @@ impl Config {
             .folder
             .unwrap_or_else(|| default.clone().folder.unwrap_or_else(|| "".to_owned()))
     }
+
+    /// Compute an inline flag by resolving the two flags with this struct inline images status
+    pub fn inline(&self, inline:bool, do_not_inline:bool)->bool {
+        if self.inline_image_as_data {
+            return !do_not_inline
+        } else {
+            return inline
+        }
+    }
 }

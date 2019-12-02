@@ -42,7 +42,7 @@ impl Feed {
     }
 
     // Convert the parameters vec into a valid feed (if possible)
-    pub fn from(parameters: Vec<String>) -> Feed {
+    pub fn from_vec(parameters: Vec<String>) -> Feed {
         let mut consumed = parameters.clone();
         let url: String = consumed
             .pop()
@@ -76,6 +76,19 @@ impl Feed {
                 folder,
                 from: None,
                 inline_image_as_data: false,
+            },
+            last_updated: Feed::at_epoch(),
+        }
+    }
+
+    pub fn from_all(url:Option<String>, email:Option<String>, destination:Option<String>, inline:bool) -> Feed {
+        Feed {
+            url: url.unwrap(),
+            config: Config {
+                email,
+                folder: destination,
+                from: None,
+                inline_image_as_data: inline,
             },
             last_updated: Feed::at_epoch(),
         }

@@ -178,7 +178,7 @@ mod syndication;
 /// into your mailbox by the grace of imap protocol
 ///
 #[derive(Debug, StructOpt)]
-#[structopt(name = "rrss2imap")]
+#[structopt(author=env!("CARGO_PKG_AUTHORS"))]
 enum RRSS2IMAP {
     /// Creates a new feedfile with the given email address
     #[structopt(name = "new")]
@@ -192,9 +192,27 @@ enum RRSS2IMAP {
     /// Run feed parsing and transformation
     #[structopt(name = "run")]
     Run,
-    /// Adds a new feed given its url
+    /// Adds a new feed given its url.
+    /// This option can use either named parameters or positional parameters.
+    /// Although positional parameters may seems simpler to use, they're of a more weird usage
+    /// (and may be sometimes buggy)
     #[structopt(name = "add")]
     Add {
+        /// url of the feed
+        #[structopt(short = "u", long = "url")]
+        url:Option<String>,
+        /// email address to use to forward feed content
+        #[structopt(short = "e", long = "email")]
+        email:Option<String>,
+        /// destination folder of the email
+        #[structopt(short = "d", long = "destination")]
+        destination:Option<String>,
+        /// inline image in this feed (useful only when default is to not include images)
+        #[structopt(short = "i", long = "inline-mages")]
+        inline_images:bool,
+        /// Don't inline image in this feed (useful only when default is to include images)
+        #[structopt(short = "x", long = "do-not-inline-mages")]
+        do_not_inline_images:bool,
         /// Parameters used to add the feed. Expected parameters are
         ///
         /// - url of the feed. web page urls are not yet supported. Given as first parameters, **mandatory**
@@ -257,7 +275,8 @@ fn main() {
 
                 RRSS2IMAP::List => store.list(),
 
-                RRSS2IMAP::Add { parameters } => store.add(parameters),
+                RRSS2IMAP::Add { url, email, destination, inline_images, do_not_inline_images, parameters } => 
+                    store.add(url, email, destination, store.settings.config.inline(inline_images, do_not_inline_images), parameters),
                 RRSS2IMAP::Delete { feed } => store.delete(feed),
 
                 RRSS2IMAP::Reset => store.reset(),

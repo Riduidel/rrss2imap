@@ -99,9 +99,13 @@ impl Store {
     }
 
     /// Add a feed to the feeds list and immediatly save the store.
-    pub fn add(&mut self, parameters: Vec<String>) {
-        info!("adding \"{:?}\"", parameters);
-        let to_add = Feed::from(parameters);
+    pub fn add(&mut self, url:Option<String>, email:Option<String>, destination:Option<String>, inline:bool, parameters: Vec<String>) {
+        let to_add:Feed = if url.is_some() {
+            Feed::from_all(url, email, destination, inline)
+        } else {
+            Feed::from_vec(parameters)
+        };
+        info!("adding \"{:?}\"", to_add);
         self.add_feed(to_add);
         self.dirty = true;
     }
