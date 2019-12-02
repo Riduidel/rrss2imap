@@ -21,7 +21,7 @@ pub struct Email {
     /// imap server we want to connect to
     server: String,
     /// username used to connect to that server
-    user: String,
+    pub user: String,
     /// password used to connect to that server.
     /// **WARNING** THis password is in **no way** encrypted, which makes rrss2imap a "not-so-secured" software
     password: String,

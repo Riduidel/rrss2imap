@@ -75,7 +75,9 @@ impl Message {
         }
         let mut builder = Email::builder()
             .subject(&*self.title)
-            .date(date.unwrap());
+            .date(date.unwrap())
+            .to(settings.email.user.parse().unwrap())
+            ;
 
         match &feed.config.from {
             Some(from) => {
