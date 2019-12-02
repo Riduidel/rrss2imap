@@ -247,24 +247,31 @@ fn main() {
     
     openssl_probe::init_ssl_cert_env_vars();
 
-    let mut store = store::Store::load();
-    let opt = RRSS2IMAP::from_args();
-    match opt {
-        RRSS2IMAP::New { email } => store.set_email(email),
-        RRSS2IMAP::Email { email } => store.set_email(email),
+    let store_result = store::Store::load();
+    match store_result {
+        Ok(mut store) => {
+            let opt = RRSS2IMAP::from_args();
+            match opt {
+                RRSS2IMAP::New { email } => store.set_email(email),
+                RRSS2IMAP::Email { email } => store.set_email(email),
 
-        RRSS2IMAP::List => store.list(),
+                RRSS2IMAP::List => store.list(),
 
-        RRSS2IMAP::Add { parameters } => store.add(parameters),
-        RRSS2IMAP::Delete { feed } => store.delete(feed),
+                RRSS2IMAP::Add { parameters } => store.add(parameters),
+                RRSS2IMAP::Delete { feed } => store.delete(feed),
 
-        RRSS2IMAP::Reset => store.reset(),
+                RRSS2IMAP::Reset => store.reset(),
 
-        RRSS2IMAP::Run => {
-            store.run();
+                RRSS2IMAP::Run => {
+                    store.run();
+                }
+
+                RRSS2IMAP::Export { output } => store.export(output),
+                RRSS2IMAP::Import { input } => store.import(input),
+            }
+        },
+        Err(e) => {
+            error!("Impossible to open store {}\n{}", store::STORE, e);
         }
-
-        RRSS2IMAP::Export { output } => store.export(output),
-        RRSS2IMAP::Import { input } => store.import(input),
     }
 }

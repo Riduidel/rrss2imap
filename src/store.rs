@@ -12,6 +12,14 @@ use super::feed::Feed;
 use super::import;
 use super::settings::Settings;
 
+use custom_error::custom_error;
+
+custom_error!{pub UnusableStore
+    IO{source:std::io::Error} = "input/output error",
+    JsonParseError{source:serde_json::Error} = "Can't parse JSON content of store"
+}
+
+
 /// Main application structure.
 /// This structure is read/written from/to a JSON file
 #[derive(Debug, Deserialize, Serialize)]
@@ -25,32 +33,31 @@ pub struct Store {
 }
 
 /// Name of the file from which config is read/written. As of today, this name is not expected to change.
-const STORE: &str = "config.json";
+pub const STORE: &str = "config.json";
 
 impl Store {
     /// Loads the FeedStore object.
     /// This requires creating (if it doesn't exist) the config.xml file
     /// And filling it with useful content
-    pub fn load() -> Store {
+    pub fn load() -> Result<Store,UnusableStore> {
         let path = Path::new(STORE);
         if path.exists() {
             // First read the file
             let mut file =
-                File::open(STORE).unwrap_or_else(|_| panic!("Unable to open file {}", STORE));
+                File::open(STORE)?;
             let mut contents = String::new();
-            file.read_to_string(&mut contents)
-                .unwrap_or_else(|_| panic!("Unable to read file {}", STORE));
+            file.read_to_string(&mut contents)?;
             // Then deserialize its content
             let store: Store =
-                serde_json::from_str(&contents).expect("Can't deserialize Store from JSON");
+                serde_json::from_str(&contents)?;
             // And return it
-            store
+            return Ok(store);
         } else {
-            Store {
+            return Ok(Store {
                 settings: Settings::default(),
                 feeds: vec![],
                 dirty: false
-            }
+            });
         }
     }
 
