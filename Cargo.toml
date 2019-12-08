@@ -23,7 +23,7 @@ maintenance = { status = "actively-developed" }
 log = "0.4"
 flexi_logger = "0.14.5"
 # Used for parsing command line args
-structopt = "0.3.4"
+structopt = "0.3.5"
 # Used for reading/writing config file
 serde = "1.0"
 serde_derive = "1.0"
@@ -42,7 +42,7 @@ kuchiki = "0.7"
 imap = "1.0"
 native-tls = "0.2"
 # Used to generate html text messages from initial entries
-tera = "0.11"
+tera = "1.0.0"
 # Allows to easily start tera
 lazy_static = "1.4.0"
 base64 = "0.11.0"

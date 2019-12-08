@@ -24,8 +24,14 @@ custom_error!{UnprocessableMessage
 
 lazy_static! {
     pub static ref TERA: Tera = {
-        let mut tera = compile_templates!("templates/*");
         let message = include_str!("../templates/message.html");
+        let mut tera = match Tera::new("templates/**/*") {
+            Ok(t) => t,
+            Err(e) => {
+                println!("Can't compile tera template: {}", e);
+                ::std::process::exit(1);
+            }
+        };
         tera.add_raw_template("message.html", message).expect("There should be a message.html template");
         tera.autoescape_on(vec![]);
         tera
