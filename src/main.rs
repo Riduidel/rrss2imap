@@ -112,55 +112,41 @@
 extern crate structopt;
 #[macro_use]
 extern crate log;
-
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-
 extern crate flexi_logger;
-
 extern crate treexml;
-
 extern crate chrono;
 extern crate rfc822_sanitizer;
 extern crate unidecode;
-
 extern crate tera;
-
 #[macro_use]
 extern crate lazy_static;
-
 #[macro_use]
 extern crate human_panic;
-
 extern crate kuchiki;
-
 extern crate imap;
 extern crate native_tls;
-
 extern crate base64;
 extern crate atom_syndication;
 extern crate reqwest;
 extern crate rss;
-
 extern crate xhtmlchardet;
-
 extern crate url;
-
 extern crate tree_magic;
-
 extern crate emailmessage;
-
 extern crate openssl_probe;
-
 extern crate regex;
-
 extern crate custom_error;
-
+extern crate async_std;
+extern crate tokio;
+extern crate futures;
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;
+use std::error::Error;
 
 mod config;
 mod export;
@@ -252,7 +238,8 @@ enum RRSS2IMAP {
 }
 
 /// Main function simply load the RRSS2IMAP struct from the command-line arguments
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     if !cfg!(debug_assertions) {
         setup_panic!();
     }
@@ -281,7 +268,7 @@ fn main() {
                 RRSS2IMAP::Reset => store.reset(),
 
                 RRSS2IMAP::Run => {
-                    store.run();
+                    store.run().await;
                 }
 
                 RRSS2IMAP::Export { output } => store.export(output),
@@ -292,4 +279,5 @@ fn main() {
             error!("Impossible to open store {}\n{}", store::STORE, e);
         }
     }
+    Ok(())
 }

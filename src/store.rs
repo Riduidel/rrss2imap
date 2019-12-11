@@ -7,6 +7,9 @@ use std::io::Read;
 
 use serde_json;
 
+use futures::stream::StreamExt;
+use futures::stream::futures_unordered::FuturesUnordered;
+
 use super::export;
 use super::feed::Feed;
 use super::import;
@@ -129,14 +132,15 @@ impl Store {
     /// Run all rss to imap transformation
     /// Each feed is read and immediatly written in this thread.
     /// This should be rewritten to allow optimization/parallelism
-    pub fn run(&mut self) {
+    pub async fn run(&mut self) {
         self.dirty = true;
         // Initialize mail server before processing feeds
-        self.feeds = self
-            .feeds
+        self.feeds = self.feeds
             .iter()
             .map(|f| f.read(&self.settings))
-            .collect::<Vec<Feed>>();
+            .collect::<FuturesUnordered<_>>()
+            .collect::<Vec<Feed>>()
+            .await;
     }
 
     /// Prints all the feeds to stdout.

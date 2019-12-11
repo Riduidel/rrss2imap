@@ -98,7 +98,7 @@ impl Feed {
         return format!("{} {}", self.url, self.config.clone().to_string(config));
     }
 
-    pub fn read(&self, settings: &Settings) -> Feed {
+    pub async fn read(&self, settings: &Settings) -> Feed {
         info!("Reading feed from {}", self.url);
         match reqwest::get(&self.url) {
             Ok(mut response) => match response.text() {
