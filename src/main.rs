@@ -273,9 +273,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     });
                 
                     // Wait for the spawned task to finish
-                    let res = handle.await;
-                
-                    println!("got {:?}", res);
+                    let _res = handle.await;
                 }
 
                 RRSS2IMAP::Export { output } => store.export(output),
