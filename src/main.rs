@@ -268,7 +268,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 RRSS2IMAP::Reset => store.reset(),
 
                 RRSS2IMAP::Run => {
-                    store.run().await;
+                    let handle = tokio::spawn(async move {
+                        store.run().await
+                    });
+                
+                    // Wait for the spawned task to finish
+                    let res = handle.await;
+                
+                    println!("got {:?}", res);
                 }
 
                 RRSS2IMAP::Export { output } => store.export(output),
