@@ -12,6 +12,7 @@ use rss::Item as RssItem;
 use url::Url;
 use regex::Regex;
 use custom_error::custom_error;
+use reqwest::Client;
 
 custom_error!{
     UnparseableFeed
@@ -98,9 +99,9 @@ impl Feed {
         return format!("{} {}", self.url, self.config.clone().to_string(config));
     }
 
-    pub async fn read(&self, settings: &Settings) -> Feed {
+    pub async fn read(&self, client:&Client, settings: &Settings) -> Feed {
         info!("Reading feed from {}", self.url);
-        match reqwest::get(&self.url) {
+        match client.get(&self.url).send() {
             Ok(mut response) => match response.text() {
                 Ok(text) => match text.parse::<syndication::Feed>() {
                     Ok(parsed) => {

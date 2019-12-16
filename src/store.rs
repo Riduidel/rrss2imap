@@ -134,10 +134,12 @@ impl Store {
     /// This should be rewritten to allow optimization/parallelism
     pub async fn run(&mut self) {
         self.dirty = true;
+        let client = reqwest::Client::builder()
+            .build().unwrap();
         // Initialize mail server before processing feeds
         self.feeds = self.feeds
             .iter()
-            .map(|f| f.read(&self.settings))
+            .map(|f| f.read(&client, &self.settings))
             .collect::<FuturesUnordered<_>>()
             .collect::<Vec<Feed>>()
             .await;
