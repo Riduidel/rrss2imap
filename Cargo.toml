@@ -23,7 +23,7 @@ maintenance = { status = "actively-developed" }
 log = "0.4"
 flexi_logger = "0.14.5"
 # Used for parsing command line args
-structopt = "0.3.5"
+structopt = "0.3"
 # Used for reading/writing config file
 serde = "1.0"
 serde_derive = "1.0"
@@ -34,7 +34,7 @@ treexml = "0.7"
 atom_syndication = "0.6"
 rss = "1.8"
 chrono = { version = "0.4", features = ["serde"] }
-rfc822_sanitizer = "0.3.3"
+rfc822_sanitizer = "0.3"
 # A good html parser to allow generation of valid mail messages
 # kuchiki is in fact a layer over html5ever, which adds easier tree traversal/transformation
 kuchiki = "0.7"
@@ -42,23 +42,23 @@ kuchiki = "0.7"
 imap = "1.0"
 native-tls = "0.2"
 # Used to generate html text messages from initial entries
-tera = "1.0.0"
+tera = "1.0"
 # Allows to easily start tera
-lazy_static = "1.4.0"
-base64 = "0.11.0"
-reqwest = "0.9.24"
-openssl-probe = "0.1.2"
+lazy_static = "1.4"
+base64 = "0.11"
+reqwest = "0.9"
+openssl-probe = "0.1"
 xhtmlchardet = "2.0"
 human-panic = "1.0"
-url = "2.1.0"
+url = "2.1"
 tree_magic = "0.2"
 emailmessage = "0.2"
-unidecode = "0.3.0"
-regex = "1.3.1"
-custom_error = "1.7.1"
-async-std = "1.3.0"
-tokio = { version = "0.2.4", features = ["full"] }
-futures = "0.3.1"
+unidecode = "0.3"
+regex = "1.3"
+custom_error = "1.7"
+async-std = "1.4"
+tokio = { version = "0.2", features = ["full"] }
+futures = "0.3"
 
 [dev-dependencies]
 assert_cli = "0.6"
