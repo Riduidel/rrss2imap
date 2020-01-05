@@ -6,7 +6,7 @@ use kuchiki::*;
 use base64;
 use reqwest;
 
-pub fn transform(document: NodeRef, _feed: &Feed, _settings: &Settings) -> NodeRef {
+pub fn transform(document: NodeRef, _settings: &Settings) -> NodeRef {
     for node_ref in document.select("img").unwrap() {
         // note we unwrapped the inner node to have its attributes available
         let node = node_ref.as_node().as_element();

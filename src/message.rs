@@ -14,7 +14,7 @@ use emailmessage::Mailbox;
 
 use custom_error::custom_error;
 
-custom_error!{UnprocessableMessage
+custom_error!{pub UnprocessableMessage
     CantPutDateInMessage{ value:String } = "EmailMessage can't parse date from {value}",
     CantPutFirstAuthorInMessage { value:String } = "Unable to parse first author {value}.
     Please consider adding in feed config the \"from\": ... field",
@@ -42,8 +42,11 @@ lazy_static! {
 /// Structure for storing message data prior to having these messages written to IMAP.
 /// This structure serves as a common interface for Item/Entry
 pub struct Message {
+    /// List of message authors
     pub authors: Vec<String>,
+    /// Message content. Image extraction should happen BEFORE that storage.
     pub content: String,
+    /// Message id
     pub id: String,
     pub last_date: NaiveDateTime,
     pub links: Vec<String>,
@@ -126,38 +129,31 @@ impl Message {
     /// This should allow
     /// * image transformation into base64 when needed
     ///
-    fn get_processed_content(&self, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
+    pub fn get_processed_content(content:&String, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
         if feed.config.inline_image_as_data || settings.config.inline_image_as_data {
-            let mut document = kuchiki::parse_html().one(self.content.clone());
+            let mut document = kuchiki::parse_html().one(content.clone());
             // So, take content, pass it through html5ever (thanks to select, and transform each image !)
-            debug!("We should inline image as base64 data for {}", self.id);
-            document = image_to_data::transform(document, feed, settings);
+            document = image_to_data::transform(document, settings);
             let mut bytes = vec![];
             if document.serialize(&mut bytes).is_err() {
                 return Err(UnprocessableMessage::CantWriteTransformedMessage);
             }
             return Ok(String::from_utf8(bytes).unwrap());
         } else {
-            return Ok(self.content.clone());
+            return Ok(content.clone());
         }
     }
 
     fn build_context(&self, feed: &Feed, settings: &Settings) -> Result<Context, UnprocessableMessage> {
         let mut context = Context::new();
-        let parsed:Result<String, UnprocessableMessage> = self.get_processed_content(feed, settings);
-        match parsed {
-            Ok(text) => {
-                context.insert("feed_entry", &text);
-                context.insert("links", &self.links);
-                context.insert("id", &self.id);
-                context.insert("title", &self.title);
-                context.insert("from", &self.authors);
-                context.insert("to", &feed.config.get_email(&settings.config));
-                context.insert("date", &self.date_text());
-                return Ok(context)
-            },
-            Err(error) => return Err(error)
-        }
+        context.insert("feed_entry", &self.content);
+        context.insert("links", &self.links);
+        context.insert("id", &self.id);
+        context.insert("title", &self.title);
+        context.insert("from", &self.authors);
+        context.insert("to", &feed.config.get_email(&settings.config));
+        context.insert("date", &self.date_text());
+        return Ok(context)
     }
 
     fn date_text(&self) -> String {

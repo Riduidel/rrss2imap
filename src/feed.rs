@@ -20,7 +20,8 @@ custom_error!{
     DateIsNotRFC3339{value:String} = "Date {value} is not RFC-3339 compliant",
     DateIsNeitherRFC2822NorRFC3339{value:String} = "Date {value} is neither RFC-2822 nor RFC-3339 compliant",
     ChronoCantParse{source: chrono::ParseError} = "chrono can't parse date",
-    NoDateFound = "absolutly no date field was found in feed"
+    NoDateFound = "absolutly no date field was found in feed",
+    CantExtractImages{source: super::message::UnprocessableMessage} = "Seems like it was not possible to read message contained images"
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -137,7 +138,9 @@ impl Feed {
         );
         return feed.entries()
             .iter()
-            .map(|e| extract_from_atom(e, &feed))
+            .map(|e| self.extract_from_atom(e, &feed, settings))
+            .filter(|e| e.is_ok())
+            .map(|e| e.unwrap())
             .filter(|e| e.last_date > self.last_updated)
             .inspect(|e| if !settings.do_not_save { e.write_to_imap(&self, settings) } )
             .map(|e| e.last_date)
@@ -176,7 +179,7 @@ impl Feed {
         );
         let extracted:Vec<Result<Message, UnparseableFeed>> = feed.items()
             .iter()
-            .map(|e| extract_from_rss(e, &feed))
+            .map(|e| self.extract_from_rss(e, &feed, settings))
             .collect();
 
         let date_errors = extracted.iter()
@@ -211,6 +214,66 @@ impl Feed {
             return self.clone();
         }
     }
+
+    fn extract_from_atom(&self, entry: &AtomEntry, feed: &AtomFeed, settings:&Settings) -> Result<Message, UnparseableFeed> {
+        let authors = extract_authors_from_atom(entry, feed);
+        let last_date = entry
+            .updated()
+            .parse::<DateTime<Utc>>()
+            .unwrap()
+            .naive_utc();
+        let content = match entry.content() {
+            Some(content) => content.value().unwrap(),
+            None => match entry.summary() {
+                Some(summary) => summary,
+                None => "",
+            },
+        }
+        .to_owned();
+        let message = Message {
+            authors: authors,
+            content: Message::get_processed_content(&content, self, settings)?,
+            id: entry.id().to_owned(),
+            last_date: last_date,
+            links: entry.links().iter().map(|l| l.href().to_owned()).collect(),
+            title: entry.title().to_owned(),
+        };
+        return Ok(message);
+    }
+
+    fn extract_from_rss(&self, entry: &RssItem, feed: &RssChannel, settings:&Settings) -> Result<Message, UnparseableFeed> {
+        let authors = extract_authors_from_rss(entry, feed);
+        let content = entry
+            .content()
+            .unwrap_or_else(|| entry.description().unwrap_or(""))
+            // First step is to fix HTML, so load it using html5ever
+            // (because there is no better html parser than a real browser one)
+            // TODO implement image inlining
+            .to_owned();
+        let links = match entry.link() {
+            Some(l) => vec![l.to_owned()],
+            _ => vec![],
+        };
+        let id = if links.is_empty() {
+            match entry.guid() {
+                Some(g) => g.value().to_owned(),
+                _ => "no id".to_owned(),
+            }
+        } else {
+            links[0].clone()
+        };
+        let last_date = extract_date_from_rss(entry, feed);
+        let message = Message {
+            authors: authors,
+            content: Message::get_processed_content(&content, self, settings)?,
+            id: id,
+            last_date: last_date?.naive_utc(),
+            links: links,
+            title: entry.title().unwrap_or("").to_owned(),
+        };
+        return Ok(message);
+    }
+    
 }
 
 fn extract_authors_from_rss(entry: &RssItem, feed: &RssChannel) -> Vec<String> {
@@ -231,39 +294,6 @@ fn find_rss_domain(feed: &RssChannel) -> String {
         .map(|url| url.host_str().unwrap().to_string())
         // and return value
         .unwrap_or("todo.find.domain.atom".to_string());
-}
-
-fn extract_from_rss(entry: &RssItem, feed: &RssChannel) -> Result<Message, UnparseableFeed> {
-    let authors = extract_authors_from_rss(entry, feed);
-    let content = entry
-        .content()
-        .unwrap_or_else(|| entry.description().unwrap_or(""))
-        // First step is to fix HTML, so load it using html5ever
-        // (because there is no better html parser than a real browser one)
-        // TODO implement image inlining
-        .to_owned();
-    let links = match entry.link() {
-        Some(l) => vec![l.to_owned()],
-        _ => vec![],
-    };
-    let id = if links.is_empty() {
-        match entry.guid() {
-            Some(g) => g.value().to_owned(),
-            _ => "no id".to_owned(),
-        }
-    } else {
-        links[0].clone()
-    };
-    let last_date = extract_date_from_rss(entry, feed);
-    let message = Message {
-        authors: authors,
-        content: content,
-        id: id,
-        last_date: last_date?.naive_utc(),
-        links: links,
-        title: entry.title().unwrap_or("").to_owned(),
-    };
-    return Ok(message);
 }
 
 fn try_hard_to_parse(date:String) -> Result<DateTime<FixedOffset>, UnparseableFeed> {
@@ -346,32 +376,6 @@ fn find_atom_domain(feed: &AtomFeed) -> String {
         .map(|url| url.host_str().unwrap().to_string())
         // and return value
         .unwrap_or("todo.find.domain.rss".to_string());
-}
-
-fn extract_from_atom(entry: &AtomEntry, feed: &AtomFeed) -> Message {
-    let authors = extract_authors_from_atom(entry, feed);
-    let last_date = entry
-        .updated()
-        .parse::<DateTime<Utc>>()
-        .unwrap()
-        .naive_utc();
-    let content = match entry.content() {
-        Some(content) => content.value().unwrap(),
-        None => match entry.summary() {
-            Some(summary) => summary,
-            None => "",
-        },
-    }
-    .to_owned();
-    let message = Message {
-        authors: authors,
-        content: content,
-        id: entry.id().to_owned(),
-        last_date: last_date,
-        links: entry.links().iter().map(|l| l.href().to_owned()).collect(),
-        title: entry.title().to_owned(),
-    };
-    return message;
 }
 
 fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
