@@ -150,6 +150,9 @@ use std::error::Error;
 
 mod config;
 mod export;
+mod feed_errors;
+mod feed_reader;
+mod feed_utils;
 mod feed;
 mod image_to_data;
 mod import;

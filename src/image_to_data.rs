@@ -1,4 +1,3 @@
-use super::feed::*;
 use super::settings::*;
 
 use kuchiki::*;
@@ -15,7 +14,11 @@ pub fn transform(document: NodeRef, _settings: &Settings) -> NodeRef {
             if let Some(src) = attributes.get("src") {
                 // Now download image source and base64 encode it !
                 debug!("reading image from {}", src);
-                if let Ok(mut response) = reqwest::get(src) {
+/*                if let Ok(mut response) = reqwest::get(src).await {
+                    let image_bytes = response.bytes().await.unwrap();
+                    let encoded = base64::encode(&image_bytes);
+                    let image_mime_type = tree_magic::from_u8(&image_bytes);
+*/                if let Ok(mut response) = reqwest::get(src) {
                     let mut image: Vec<u8> = vec![];
                     response.copy_to(&mut image).unwrap();
                     let image_bytes = image.as_slice();
