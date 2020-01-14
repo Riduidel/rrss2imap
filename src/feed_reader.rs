@@ -73,7 +73,7 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
         .to_owned();
         let message = Message {
             authors: authors,
-            content: Message::get_processed_content(&content, feed, settings)?,
+            content: content,
             id: entry.id().to_owned(),
             last_date: last_date,
             links: entry.links().iter().map(|l| l.href().to_owned()).collect(),
@@ -100,7 +100,17 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
             .filter(|e| e.is_ok())
             .map(|e| e.unwrap())
             .filter(|e| e.last_date > feed.last_updated)
-            .inspect(|e| if !settings.do_not_save { e.write_to_imap(&feed, settings) } )
+            .map(|message| 
+                Message {
+                    authors: message.authors.clone(),
+                    content: Message::get_processed_content(&message.content, feed, settings).unwrap(),
+                    id: message.id.clone(),
+                    last_date: message.last_date,
+                    links: message.links.clone(),
+                    title: message.title.clone(),
+                }
+            )
+        .inspect(|e| if !settings.do_not_save { e.write_to_imap(&feed, settings) } )
             .map(|e| e.last_date)
             .max()
             .map_or_else(
@@ -208,7 +218,7 @@ impl Reader<RssItem, RssChannel> for RssReader {
         let last_date = RssReader::extract_date_from_rss(entry, source);
         let message = Message {
             authors: authors,
-            content: Message::get_processed_content(&content, feed, settings)?,
+            content: content,
             id: id,
             last_date: last_date?.naive_utc(),
             links: links,
@@ -247,6 +257,16 @@ impl Reader<RssItem, RssChannel> for RssReader {
                 .filter(|e| e.is_ok())
                 .map(|e| e.as_ref().unwrap())
                 .filter(|m| m.last_date>feed.last_updated)
+                .map(|message| 
+                    Message {
+                        authors: message.authors.clone(),
+                        content: Message::get_processed_content(&message.content, feed, settings).unwrap(),
+                        id: message.id.clone(),
+                        last_date: message.last_date,
+                        links: message.links.clone(),
+                        title: message.title.clone(),
+                    }
+                )
                 .inspect(|e| if !settings.do_not_save { e.write_to_imap(&feed, settings) } )
                 .map(|e| e.last_date)
                 .max()

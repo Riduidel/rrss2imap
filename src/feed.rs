@@ -83,8 +83,8 @@ impl Feed {
         return format!("{} {}", self.url, self.config.clone().to_string(config));
     }
 
-    pub async fn read(&self, client:&Client, settings: &Settings) -> Feed {
-        info!("Reading feed from {}", self.url);
+    pub async fn read(&self, index:usize, count:&usize, client:&Client, settings: &Settings) -> Feed {
+        info!("Reading feed {}/{} from {}", index+1, count, self.url);
         match client.get(&self.url).send() {
             Ok(mut response) => match response.text() {
                 Ok(text) => match text.parse::<syndication::Feed>() {

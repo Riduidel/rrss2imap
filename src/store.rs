@@ -136,10 +136,11 @@ impl Store {
         self.dirty = true;
         let client = reqwest::Client::builder()
             .build().unwrap();
+        let feeds_length = self.feeds.len();
         // Initialize mail server before processing feeds
         self.feeds = self.feeds
-            .iter()
-            .map(|f| f.read(&client, &self.settings))
+            .iter().enumerate()
+            .map(|element| element.1.read(element.0, &feeds_length, &client, &self.settings))
             .collect::<FuturesUnordered<_>>()
             .collect::<Vec<Feed>>()
             .await;
