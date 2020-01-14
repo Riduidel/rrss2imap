@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc, FixedOffset};
+use chrono::{DateTime, Utc, FixedOffset, NaiveDateTime};
 
 use super::feed_errors::*;
 use super::message::*;
@@ -15,7 +15,43 @@ use super::feed_utils::*;
 /// The reader trait allow reading data from a web source.
 /// It is supposed to be derived for Rss and Atom, but it's only a try currently ...
 pub trait Reader<EntryType, FeedType> {
-    fn extract(&self, feed:&Feed, entry:&EntryType, source:&FeedType, settings:&Settings) -> Result<Message, UnparseableFeed>;
+    fn process_message(&self, feed:&Feed, settings:&Settings, message:&Message)->Message {
+        Message {
+            authors: message.authors.clone(),
+            content: Message::get_processed_content(&message.content, feed, settings).unwrap(),
+            id: message.id.clone(),
+            last_date: message.last_date,
+            links: message.links.clone(),
+            title: message.title.clone(),
+        }
+    }
+
+    fn write_new_messages(&self, feed:&Feed, settings:&Settings, extracted:Vec<Result<Message, UnparseableFeed>>)->Feed {
+        return extracted.iter()
+            .filter(|e| e.is_ok())
+            .map(|e| e.as_ref().unwrap())
+            .filter(|m| m.last_date>feed.last_updated)
+            .map(|message| self.process_message(feed, settings, message))
+            .inspect(|e| if !settings.do_not_save { e.write_to_imap(&feed, settings) } )
+            .map(|e| e.last_date)
+            .max()
+            .map_or_else(
+                || feed.clone(),
+                |feed_date| Feed {
+                    url: feed.url.clone(),
+                    config: feed.config.clone(),
+                    last_updated: if settings.do_not_save {
+                        warn!("do_not_save is set. As a consequence, feed won't be updated");
+                        feed.last_updated
+                    } else {
+                        feed_date
+                    }
+                }
+            );
+    }
+
+    fn extract(&self, entry:&EntryType, source:&FeedType) -> Result<Message, UnparseableFeed>;
+    fn read_feed_date(&self, source:&FeedType)->NaiveDateTime;
     fn read(&self, feed:&Feed, source:&FeedType, settings:&Settings)->Feed;
 }
 
@@ -56,7 +92,7 @@ impl AtomReader {
 }
 
 impl Reader<AtomEntry, AtomFeed> for AtomReader {
-    fn extract(&self, feed:&Feed, entry: &AtomEntry, source: &AtomFeed, settings:&Settings) -> Result<Message, UnparseableFeed> {
+    fn extract(&self, entry: &AtomEntry, source: &AtomFeed) -> Result<Message, UnparseableFeed> {
         let authors = AtomReader::extract_authors_from_atom(entry, source);
         let last_date = entry
             .updated()
@@ -82,50 +118,27 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
         return Ok(message);
     }
 
-    fn read(&self, feed:&Feed, source:&AtomFeed, settings:&Settings)->Feed {
-        debug!("reading ATOM feed {}", &feed.url);
+    fn read_feed_date(&self, source:&AtomFeed)->NaiveDateTime {
         let feed_date_text = source.updated();
-        let feed_date = if feed_date_text.is_empty() {
+        return if feed_date_text.is_empty() {
             Feed::at_end_of_universe()
         } else {
             feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc()
         };
+    }
+
+    fn read(&self, feed:&Feed, source:&AtomFeed, settings:&Settings)->Feed {
+        debug!("reading ATOM feed {}", &feed.url);
+        let feed_date = self.read_feed_date(source);
         info!(
             "Feed date is {} while previous read date is {}",
             feed_date, feed.last_updated
         );
-        return source.entries()
+        let extracted:Vec<Result<Message, UnparseableFeed>> = source.entries()
             .iter()
-            .map(|e| self.extract(feed, e, &source, settings))
-            .filter(|e| e.is_ok())
-            .map(|e| e.unwrap())
-            .filter(|e| e.last_date > feed.last_updated)
-            .map(|message| 
-                Message {
-                    authors: message.authors.clone(),
-                    content: Message::get_processed_content(&message.content, feed, settings).unwrap(),
-                    id: message.id.clone(),
-                    last_date: message.last_date,
-                    links: message.links.clone(),
-                    title: message.title.clone(),
-                }
-            )
-        .inspect(|e| if !settings.do_not_save { e.write_to_imap(&feed, settings) } )
-            .map(|e| e.last_date)
-            .max()
-            .map_or_else(
-                || feed.clone(),
-                |feed_date| Feed {
-                    url: feed.url.clone(),
-                    config: feed.config.clone(),
-                    last_updated: if settings.do_not_save {
-                        warn!("do_not_save is set. As a consequence, feed won't be updated");
-                        feed.last_updated
-                    } else {
-                        feed_date
-                    },
-                }
-            );
+            .map(|e| self.extract(e, &source))
+            .collect();
+        return self.write_new_messages(feed, settings, extracted);
     }
 }
 
@@ -194,7 +207,7 @@ impl RssReader {
 }
 
 impl Reader<RssItem, RssChannel> for RssReader {
-    fn extract(&self, feed:&Feed, entry: &RssItem, source: &RssChannel, settings:&Settings) -> Result<Message, UnparseableFeed> {
+    fn extract(&self, entry: &RssItem, source: &RssChannel) -> Result<Message, UnparseableFeed> {
         let authors = RssReader::extract_authors_from_rss(entry, source);
         let content = entry
             .content()
@@ -226,9 +239,8 @@ impl Reader<RssItem, RssChannel> for RssReader {
         };
         return Ok(message);
     }
-    
-    fn read(&self, feed:&Feed, source:&RssChannel, settings:&Settings)->Feed {
-        debug!("reading RSS feed {}", &feed.url);
+
+    fn read_feed_date(&self, source:&RssChannel)->NaiveDateTime {
         let n = Utc::now();
         let feed_date_text = match source.pub_date() {
             Some(p) => p.to_owned(),
@@ -237,52 +249,29 @@ impl Reader<RssItem, RssChannel> for RssReader {
                 None => n.to_rfc2822(),
             },
         };
-        let feed_date = DateTime::parse_from_rfc2822(&feed_date_text)
+        return DateTime::parse_from_rfc2822(&feed_date_text)
             .unwrap()
             .naive_utc();
+        
+    }
+    
+    fn read(&self, feed:&Feed, source:&RssChannel, settings:&Settings)->Feed {
+        debug!("reading feed {}", &feed.url);
+        let feed_date = self.read_feed_date(source);
         info!(
             "Feed date is {} while previous read date is {}",
             feed_date, feed.last_updated
         );
         let extracted:Vec<Result<Message, UnparseableFeed>> = source.items()
             .iter()
-            .map(|e| self.extract(feed, e, &source, settings))
+            .map(|e| self.extract(e, &source))
             .collect();
 
         let date_errors = extracted.iter()
             .filter(|e| e.is_err())
             .fold(0, |acc, _| acc + 1);
         if date_errors==0 {
-            return extracted.iter()
-                .filter(|e| e.is_ok())
-                .map(|e| e.as_ref().unwrap())
-                .filter(|m| m.last_date>feed.last_updated)
-                .map(|message| 
-                    Message {
-                        authors: message.authors.clone(),
-                        content: Message::get_processed_content(&message.content, feed, settings).unwrap(),
-                        id: message.id.clone(),
-                        last_date: message.last_date,
-                        links: message.links.clone(),
-                        title: message.title.clone(),
-                    }
-                )
-                .inspect(|e| if !settings.do_not_save { e.write_to_imap(&feed, settings) } )
-                .map(|e| e.last_date)
-                .max()
-                .map_or_else(
-                    || feed.clone(),
-                    |feed_date| Feed {
-                        url: feed.url.clone(),
-                        config: feed.config.clone(),
-                        last_updated: if settings.do_not_save {
-                            warn!("do_not_save is set. As a consequence, feed won't be updated");
-                            feed.last_updated
-                        } else {
-                            feed_date
-                        }
-                    }
-                );
+            return self.write_new_messages(feed, settings, extracted);
         } else {
             warn!("There were problems getting content from feed {}. It may not be complete ...
             I strongly suggest you enter an issue on GitHub by following this link
