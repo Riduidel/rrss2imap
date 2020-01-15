@@ -52,7 +52,31 @@ pub trait Reader<EntryType, FeedType> {
 
     fn extract(&self, entry:&EntryType, source:&FeedType) -> Result<Message, UnparseableFeed>;
     fn read_feed_date(&self, source:&FeedType)->NaiveDateTime;
-    fn read(&self, feed:&Feed, source:&FeedType, settings:&Settings)->Feed;
+
+    fn extract_messages(&self, source:&FeedType)->Vec<Result<Message,UnparseableFeed>>;
+    
+    fn read(&self, feed:&Feed, source:&FeedType, settings:&Settings)->Feed {
+        debug!("reading feed {}", &feed.url);
+        let feed_date = self.read_feed_date(source);
+        info!(
+            "Feed date is {} while previous read date is {}",
+            feed_date, feed.last_updated
+        );
+        let extracted:Vec<Result<Message, UnparseableFeed>> = self.extract_messages(source);
+
+        let date_errors = extracted.iter()
+            .filter(|e| e.is_err())
+            .fold(0, |acc, _| acc + 1);
+        if date_errors==0 {
+            return self.write_new_messages(feed, settings, extracted);
+        } else {
+            warn!("There were problems getting content from feed {}. It may not be complete ...
+            I strongly suggest you enter an issue on GitHub by following this link
+            https://github.com/Riduidel/rrss2imap/issues/new?title=Incorrect%20feed&body=Feed%20at%20url%20{}%20doesn't%20seems%20to%20be%20parseable", 
+            feed.url, feed.url);
+            return feed.clone();
+        }
+    }
 }
 
 pub struct AtomReader {}
@@ -127,18 +151,11 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
         };
     }
 
-    fn read(&self, feed:&Feed, source:&AtomFeed, settings:&Settings)->Feed {
-        debug!("reading ATOM feed {}", &feed.url);
-        let feed_date = self.read_feed_date(source);
-        info!(
-            "Feed date is {} while previous read date is {}",
-            feed_date, feed.last_updated
-        );
-        let extracted:Vec<Result<Message, UnparseableFeed>> = source.entries()
+    fn extract_messages(&self, source:&AtomFeed)->Vec<Result<Message, UnparseableFeed>> {
+        source.entries()
             .iter()
             .map(|e| self.extract(e, &source))
-            .collect();
-        return self.write_new_messages(feed, settings, extracted);
+            .collect()
     }
 }
 
@@ -240,6 +257,13 @@ impl Reader<RssItem, RssChannel> for RssReader {
         return Ok(message);
     }
 
+    fn extract_messages(&self, source:&RssChannel)->Vec<Result<Message, UnparseableFeed>> {
+        source.items()
+            .iter()
+            .map(|e| self.extract(e, &source))
+            .collect()
+    }
+
     fn read_feed_date(&self, source:&RssChannel)->NaiveDateTime {
         let n = Utc::now();
         let feed_date_text = match source.pub_date() {
@@ -253,31 +277,5 @@ impl Reader<RssItem, RssChannel> for RssReader {
             .unwrap()
             .naive_utc();
         
-    }
-    
-    fn read(&self, feed:&Feed, source:&RssChannel, settings:&Settings)->Feed {
-        debug!("reading feed {}", &feed.url);
-        let feed_date = self.read_feed_date(source);
-        info!(
-            "Feed date is {} while previous read date is {}",
-            feed_date, feed.last_updated
-        );
-        let extracted:Vec<Result<Message, UnparseableFeed>> = source.items()
-            .iter()
-            .map(|e| self.extract(e, &source))
-            .collect();
-
-        let date_errors = extracted.iter()
-            .filter(|e| e.is_err())
-            .fold(0, |acc, _| acc + 1);
-        if date_errors==0 {
-            return self.write_new_messages(feed, settings, extracted);
-        } else {
-            warn!("There were problems getting content from feed {}. It may not be complete ...
-            I strongly suggest you enter an issue on GitHub by following this link
-            https://github.com/Riduidel/rrss2imap/issues/new?title=Incorrect%20feed&body=Feed%20at%20url%20{}%20doesn't%20seems%20to%20be%20parseable", 
-            feed.url, feed.url);
-            return feed.clone();
-        }
     }
 }
