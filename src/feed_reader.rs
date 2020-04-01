@@ -26,11 +26,15 @@ pub trait Reader<EntryType, FeedType> {
         }
     }
 
+    fn filter_message(&self, feed:&Feed, m:&Message)->bool {
+        return m.last_date>feed.last_updated;
+    }
+
     fn write_new_messages(&self, feed:&Feed, settings:&Settings, extracted:Vec<Result<Message, UnparseableFeed>>)->Feed {
         return extracted.iter()
             .filter(|e| e.is_ok())
             .map(|e| e.as_ref().unwrap())
-            .filter(|m| m.last_date>feed.last_updated)
+            .filter(|m| self.filter_message(feed, m))
             .map(|message| self.process_message(feed, settings, message))
             .inspect(|e| if !settings.do_not_save { e.write_to_imap(&feed, settings) } )
             .map(|e| e.last_date)
