@@ -35,7 +35,7 @@ jobs:
           - { os: ubuntu-18.04, name: rrss2imap_raspbian, path: target/armv7-unknown-linux-gnueabihf/debug/rrss2imap, target: armv7-unknown-linux-gnueabihf, linker: gcc-arm-linux-gnueabihf}
     steps:
       - name: Install linker
-        run: sudo apt-get update &&  sudo apt-get install libssl-dev ${{matrix.config.linker}}
+        run: sudo apt-get update &&  sudo apt-get install libssl-dev okg-config ${{matrix.config.linker}}
         if: matrix.config.linker!=null
       - uses: actions-rs/toolchain@v1
         with:
