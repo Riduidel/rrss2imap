@@ -37,25 +37,25 @@ jobs:
       - name: Install linker
         run: sudo apt-get update &&  sudo apt-get install ${{matrix.config.linker}}
         if: matrix.config.linker!=null
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1.0.6
         with:
           toolchain: stable
           target: ${{matrix.config.target}}
           override: true
         if: matrix.config.target!=null
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1.0.6
         with:
           toolchain: stable
         if: matrix.config.target==null
       - uses: actions/checkout@master
       # see https://github.com/marketplace/actions/rust-cargo
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1.0.1
         with:
           command: build
           # temp
           args: --all-features
         if: matrix.config.target==null
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v1.0.1
         with:
           use-cross: true
           command: build
