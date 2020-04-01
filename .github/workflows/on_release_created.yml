@@ -47,7 +47,7 @@ jobs:
           args: --release --all-features --target ${{matrix.config.target}}
         if: matrix.config.target!=null
       - uses: olegtarasov/get-tag@v2
-      - run: find target
+#      - run: find target
       - name: Upload matrix release asset
         uses: actions/upload-release-asset@v1.0.2
         env:
