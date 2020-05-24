@@ -1,5 +1,7 @@
-use std::path::Path;
-use std::path::PathBuf;
+extern crate directories;
+
+use directories::ProjectDirs;
+use std::path::{PathBuf, Path};
 
 use std::fs;
 use std::fs::File;
@@ -32,34 +34,53 @@ pub struct Store {
     /// Contains all feeds being read
     pub feeds: Vec<Feed>,
     #[serde(skip)]
-    pub dirty:bool
+    pub dirty:bool,
+    #[serde(skip)]
+    pub path: PathBuf
 }
 
 /// Name of the file from which config is read/written. As of today, this name is not expected to change.
 pub const STORE: &str = "config.json";
 
+/// Calculate the location of the `config.json` store file.
+/// If `config.json` is found in the current directory, use it for backward
+/// compatibility.  Otherwise, return a path inside the project directory
+/// (~/.config/rrss2imap/ on Linux, system-specific on macOS and Windows).
+pub fn find_store() -> PathBuf {
+    let mut path = PathBuf::from(STORE);
+    if !path.exists() {
+        // The current directory takes precedence over project directory
+        // for existing configurations for backward compatibility.
+        if let Some(proj_dirs) = ProjectDirs::from("org", "Rrss2imap", "rrss2imap") {
+            path = proj_dirs.config_dir().to_path_buf();
+            path.push(STORE);
+        }
+    }
+    path
+}
+
 impl Store {
-    /// Loads the FeedStore object.
-    /// This requires creating (if it doesn't exist) the config.xml file
-    /// And filling it with useful content
-    pub fn load() -> Result<Store,UnusableStore> {
-        let path = Path::new(STORE);
+    /// Initialize a Store object from a config file at the given path. If the
+    /// config file does not exist, return a Store object with default values.
+    pub fn load(path: &PathBuf) -> Result<Store,UnusableStore> {
+        info!("Using store: {}", path.to_string_lossy());
         if path.exists() {
             // First read the file
-            let mut file =
-                File::open(STORE)?;
+            let mut file = File::open(path)?;
             let mut contents = String::new();
             file.read_to_string(&mut contents)?;
             // Then deserialize its content
-            let store: Store =
+            let mut store: Store =
                 serde_json::from_str(&contents)?;
+            store.path = path.to_owned();
             // And return it
             return Ok(store);
         } else {
             return Ok(Store {
                 settings: Settings::default(),
                 feeds: vec![],
-                dirty: false
+                dirty: false,
+                path: path.to_owned()
             });
         }
     }
@@ -67,7 +88,11 @@ impl Store {
     /// Save all informations in the store file
     fn save(&self) {
         let serialized = serde_json::to_string_pretty(self).expect("Can't serialize Store to JSON");
-        fs::write(STORE, serialized).unwrap_or_else(|_| panic!("Unable to write file {}", STORE));
+        let directory = self.path.parent().unwrap_or(Path::new("."));
+        fs::create_dir_all(directory)
+            .unwrap_or_else(|_| panic!("Unable to create directory for file {}", self.path.to_string_lossy()));
+        fs::write(&self.path, serialized)
+            .unwrap_or_else(|_| panic!("Unable to write file {}", self.path.to_string_lossy()));
     }
 
     /// Set a new value for email and save file (prior to obviously exiting)
@@ -80,7 +105,7 @@ impl Store {
     /// Exports config into an OPML file
     /// see [export](rrss2imap::export::export) for implementation details
     pub fn export(&self, file: Option<PathBuf>) {
-        let path_to_write = file.expect("Can't expport file if no file is given");
+        let path_to_write = file.expect("Can't export file if no file is given");
         warn!("exporting content to {:?}", path_to_write);
         export::export(&path_to_write, self);
         warn!("exported feeds to {:?}", path_to_write);
@@ -126,7 +151,7 @@ impl Store {
         self.feeds.clear();
         self.settings.config.clear();
         self.dirty = true;
-        info!("store have been cleared to contain only {:?}", self);
+        info!("store has been cleared to contain only {:?}", self);
     }
 
     /// Run all rss to imap transformation
@@ -179,9 +204,9 @@ impl Drop for Store {
     fn drop(&mut self) {
         if self.dirty {
             if self.settings.do_not_save {
-                error!("do_not_save flag is set in config.json. NOT SAVING!")
+                error!("do_not_save flag is set in config.json. NOT SAVING {} !", self.path.to_string_lossy())
             } else {
-                info!("store has been modified. Saving !");
+                info!("store has been modified. Saving {} !", self.path.to_string_lossy());
                 self.save();
             }
         }
