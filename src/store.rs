@@ -63,8 +63,8 @@ impl Store {
     /// Initialize a Store object from a config file at the given path. If the
     /// config file does not exist, return a Store object with default values.
     pub fn load(path: &PathBuf) -> Result<Store,UnusableStore> {
-        info!("Using store: {}", path.to_string_lossy());
         if path.exists() {
+            info!("Reading config file {}", path.to_string_lossy());
             // First read the file
             let mut file = File::open(path)?;
             let mut contents = String::new();
@@ -76,6 +76,7 @@ impl Store {
             // And return it
             return Ok(store);
         } else {
+            info!("Using fresh config file {}", path.to_string_lossy());
             return Ok(Store {
                 settings: Settings::default(),
                 feeds: vec![],
@@ -87,6 +88,7 @@ impl Store {
 
     /// Save all informations in the store file
     fn save(&self) {
+        info!("Saving config file {}", self.path.to_string_lossy());
         let serialized = serde_json::to_string_pretty(self).expect("Can't serialize Store to JSON");
         let directory = self.path.parent().unwrap_or(Path::new("."));
         fs::create_dir_all(directory)
