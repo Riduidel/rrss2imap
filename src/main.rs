@@ -260,7 +260,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Configure logger
     Logger::with_env_or_str(
         match opt.verbose {
-            0 => "error",
+            0 => "warn",
             1 => "warn, rrss2imap = info",
             2 => "warn, rrss2imap = info",
             _ => "trace", })
