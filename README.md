@@ -142,7 +142,7 @@ A typical feedfile will look like this
 
 #### Prerequisites
 
-You need a complete rust build chain
+You need a complete rust build chain.  On Linux, you need to install the `libdbus-1-dev` and `pkg-config` packages installed while building, and the `libdbus-1-3` package installed while running.
 
 To perform a release, you'll also need
 
