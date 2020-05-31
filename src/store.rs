@@ -1,3 +1,5 @@
+extern crate keyring;
+
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -37,6 +39,7 @@ pub struct Store {
 
 /// Name of the file from which config is read/written. As of today, this name is not expected to change.
 pub const STORE: &str = "config.json";
+pub const PASSWORD_PLACEHOLDER: &str = "Password stored in keychain. To set a new password, write it here and re-run rrss2imap.";
 
 impl Store {
     /// Loads the FeedStore object.
@@ -51,9 +54,40 @@ impl Store {
             let mut contents = String::new();
             file.read_to_string(&mut contents)?;
             // Then deserialize its content
-            let store: Store =
+            let mut store: Store =
                 serde_json::from_str(&contents)?;
-            // And return it
+
+            // Load password from keyring.  There’s some cases to distinguish here.
+            let service = "rrss2imap";
+            let username = format!("{}:{}", &store.settings.email.user, &store.settings.email.server);
+            let keyring = keyring::Keyring::new(&service, &username);
+            match keyring.get_password() {
+                Ok(password) => {
+                    if store.settings.email.password == PASSWORD_PLACEHOLDER {
+                        // The normal case: password was saved in keychain and
+                        // plain-text file has placeholder
+                        info!("Loaded password from keyring");
+                        store.settings.email.password = password;
+                    } else {
+                        // Password updated in config file -- use that value
+                        // instead of the one in keyring
+                        info!("Newer password in config file, will set in keyring when saving.");
+                        store.dirty = true;
+                    }
+                }
+                Err(_) => {
+                    if store.settings.email.password == PASSWORD_PLACEHOLDER {
+                        // No keyring password and probably bogus config file
+                        // password - optimistically continue but warn loudly
+                        warn!("No password found in keyring and password in config file is placeholder -- trying to continue anyway.");
+                    } else {
+                        // No password entry in keyring; will store password
+                        // from config file in keyring later.
+                        info!("No password found in keyring, continuing with value from config file.");
+                        store.dirty = true;
+                    }
+                }
+            }
             return Ok(store);
         } else {
             return Ok(Store {
@@ -65,9 +99,26 @@ impl Store {
     }
 
     /// Save all informations in the store file
-    fn save(&self) {
+    fn save(&mut self) {
+        let service = "rrss2imap";
+        let username = format!("{}:{}", &self.settings.email.user, &self.settings.email.server);
+        let keyring = keyring::Keyring::new(&service, &username);
+        let password = self.settings.email.password.clone();
+        if password == PASSWORD_PLACEHOLDER {
+            warn!("Store contains password placeholder; not saving it to keyring");
+        } else {
+            match keyring.set_password(&self.settings.email.password) {
+                Ok(()) => {
+                    info!("Added password to keyring");
+                    self.settings.email.password = PASSWORD_PLACEHOLDER.to_string();
+                }
+                Err(e) => warn!("Failed to add password to keyring, saving it to config file! {:?}", e),
+            }
+        }
         let serialized = serde_json::to_string_pretty(self).expect("Can't serialize Store to JSON");
         fs::write(STORE, serialized).unwrap_or_else(|_| panic!("Unable to write file {}", STORE));
+        // Do not clobber the password, in case we want to continue using self
+        self.settings.email.password = password;
     }
 
     /// Set a new value for email and save file (prior to obviously exiting)
