@@ -97,6 +97,18 @@ impl Store {
             .unwrap_or_else(|_| panic!("Unable to write file {}", self.path.to_string_lossy()));
     }
 
+    /// Create a new configuration file with the given email.
+    pub fn init_config(&mut self, email: String) {
+        if self.path.exists() {
+            warn!("Config file {} already exists, leaving it unchanged.", self.path.to_string_lossy());
+        } else {
+            println!("Config file {} created, please edit it to finish configuration.", self.path.to_string_lossy());
+            self.settings.config.email = Some(email);
+            self.dirty = true;
+            self.save();
+        }
+    }
+
     /// Set a new value for email and save file (prior to obviously exiting)
     pub fn set_email(&mut self, email: String) {
         self.settings.config.email = Some(email);

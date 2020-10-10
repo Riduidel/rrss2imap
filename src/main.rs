@@ -285,7 +285,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     match store_result {
         Ok(mut store) => {
             match opt.cmd {
-                Command::New { email } => store.set_email(email),
+                Command::New { email } => store.init_config(email),
                 Command::Email { email } => store.set_email(email),
 
                 Command::List => store.list(),
