@@ -110,18 +110,18 @@ impl Store {
         let path_to_write = file.expect("Can't export file if no file is given");
         warn!("exporting content to {:?}", path_to_write);
         export::export(&path_to_write, self);
-        warn!("exported feeds to {:?}", path_to_write);
+        info!("exported feeds to {:?}", path_to_write);
     }
 
     /// Import rss feeds provided as an opml file
     /// see [import](rrss2imap::import::import) for implementation details
     pub fn import(&mut self, file: Option<PathBuf>) {
         let path_to_read = file.expect("Can't import file if no file is given");
-        warn!("importing content from {:?}", path_to_read);
+        info!("importing content from {:?}", path_to_read);
         let count = self.feeds.len();
         import::import(&path_to_read, self);
         self.dirty = true;
-        warn!(
+        info!(
             "imported {} feeds from {:?}",
             self.feeds.len() - count,
             path_to_read
