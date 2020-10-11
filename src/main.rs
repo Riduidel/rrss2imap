@@ -31,18 +31,24 @@
 //!
 //! #### `rrss2imap new`
 //!
-//! Creates a new `config.json` file. At init time, the config file will only contains `settings` element
-//! with the email address set. You **have** to set
+//! Creates a new `config.json` file in the configuration directory
+//! (`~/.config/rrss2imap/` on linux,
+//! `~/Library/Preferences/org.Rrss2imap.rrss2imap` on macOS,
+//! `AppData\Roaming\Rrss2imap\rrss2imap\` on Windows). At init time, the
+//! config file will only contains `settings` element with the email address
+//! set. You **have** to edit this file and set
 //!
 //! * the used imap server
 //! ** with user login and password
-//! ** and security settings (secure should contain `{"Yes": secure port}` for imap/s
-//! or `{"No": unsecure port}` for simple imap)
+//! ** and security settings (secure should contain `{"Yes": secure port}` for
+//!    imap/s or `{"No": unsecure port}` for simple imap)
 //! * the default config
-//! ** folder will be the full path to an imap folder where entries will fall in
+//! ** folder will be the *full path to an imap folder* where entries will
+//!    fall in (e.g., `INBOX.News`).  The exact syntax depends on your email provider.
 //! ** email will be the recipient email address (which may not be yours for easier filtering)
 //! ** Base64 image inlining
-//! * feeds is the list of all rss feeds that can be added
+//!
+//! `feeds` is the list of all rss feeds; use `rrss2imap add` to add a new feed.
 //!
 //! #### `rrss2imap add`
 //!
@@ -274,11 +280,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     openssl_probe::init_ssl_cert_env_vars();
 
-    let store_result = store::Store::load();
+    let store_path = store::find_store();
+    let store_result = store::Store::load(&store_path);
     match store_result {
         Ok(mut store) => {
             match opt.cmd {
-                Command::New { email } => store.set_email(email),
+                Command::New { email } => store.init_config(email),
                 Command::Email { email } => store.set_email(email),
 
                 Command::List => store.list(),
@@ -303,7 +310,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
         },
         Err(e) => {
-            error!("Impossible to open store {}\n{}", store::STORE, e);
+            error!("Impossible to open store {}\n{}", store_path.to_string_lossy(), e);
         }
     }
     Ok(())
