@@ -82,10 +82,11 @@ impl Message {
         if date.is_err() {
             return Err(UnprocessableMessage::CantPutDateInMessage { value : self.date_text() });
         }
+        let to_addr = settings.config.email.as_ref().unwrap_or(&settings.email.user);
         let mut builder = Email::builder()
             .subject(&*self.title)
             .date(date.unwrap())
-            .to(settings.email.user.parse().unwrap())
+            .to(to_addr.parse().unwrap())
             ;
 
         match &feed.config.from {
