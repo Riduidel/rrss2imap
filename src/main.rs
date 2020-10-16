@@ -31,18 +31,24 @@
 //!
 //! #### `rrss2imap new`
 //!
-//! Creates a new `config.json` file. At init time, the config file will only contains `settings` element
-//! with the email address set. You **have** to set
+//! Creates a new `config.json` file in the configuration directory
+//! (`~/.config/rrss2imap/` on linux,
+//! `~/Library/Preferences/org.Rrss2imap.rrss2imap` on macOS,
+//! `AppData\Roaming\Rrss2imap\rrss2imap\` on Windows). At init time, the
+//! config file will only contains `settings` element with the email address
+//! set. You **have** to edit this file and set
 //!
 //! * the used imap server
 //! ** with user login and password
-//! ** and security settings (secure should contain `{"Yes": secure port}` for imap/s
-//! or `{"No": unsecure port}` for simple imap)
+//! ** and security settings (secure should contain `{"Yes": secure port}` for
+//!    imap/s or `{"No": unsecure port}` for simple imap)
 //! * the default config
-//! ** folder will be the full path to an imap folder where entries will fall in
+//! ** folder will be the *full path to an imap folder* where entries will
+//!    fall in (e.g., `INBOX.News`).  The exact syntax depends on your email provider.
 //! ** email will be the recipient email address (which may not be yours for easier filtering)
 //! ** Base64 image inlining
-//! * feeds is the list of all rss feeds that can be added
+//!
+//! `feeds` is the list of all rss feeds; use `rrss2imap add` to add a new feed.
 //!
 //! #### `rrss2imap add`
 //!
@@ -167,7 +173,16 @@ mod syndication;
 ///
 #[derive(Debug, StructOpt)]
 #[structopt(author=env!("CARGO_PKG_AUTHORS"))]
-enum RRSS2IMAP {
+struct RRSS2IMAP {
+    /// Verbose mode (-v, -vv, -vvv)
+    #[structopt(short, long, parse(from_occurrences))]
+    verbose: u8,
+    #[structopt(subcommand)]
+    cmd: Command
+}
+
+#[derive(Debug, StructOpt)]
+enum Command {
     /// Creates a new feedfile with the given email address
     #[structopt(name = "new")]
     New {
@@ -246,45 +261,56 @@ async fn main() -> Result<(), Box<dyn Error>> {
     if !cfg!(debug_assertions) {
         setup_panic!();
     }
+    let opt = RRSS2IMAP::from_args();
+
     // Configure logger
-    Logger::with_env_or_str("warn, rrss2imap = info")
-        .format(flexi_logger::colored_detailed_format)
+    Logger::with_env_or_str(
+        match opt.verbose {
+            0 => "warn",
+            1 => "warn, rrss2imap = info",
+            2 => "warn, rrss2imap = info",
+            _ => "trace", })
+        .format(match opt.verbose {
+            0 => flexi_logger::colored_default_format,
+            1 => flexi_logger::colored_default_format,
+            2 => flexi_logger::colored_detailed_format,
+            _ => flexi_logger::colored_with_thread, })
         .start()
         .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e));
-    
+
     openssl_probe::init_ssl_cert_env_vars();
 
-    let store_result = store::Store::load();
+    let store_path = store::find_store();
+    let store_result = store::Store::load(&store_path);
     match store_result {
         Ok(mut store) => {
-            let opt = RRSS2IMAP::from_args();
-            match opt {
-                RRSS2IMAP::New { email } => store.set_email(email),
-                RRSS2IMAP::Email { email } => store.set_email(email),
+            match opt.cmd {
+                Command::New { email } => store.init_config(email),
+                Command::Email { email } => store.set_email(email),
 
-                RRSS2IMAP::List => store.list(),
+                Command::List => store.list(),
 
-                RRSS2IMAP::Add { url, email, destination, inline_images, do_not_inline_images, parameters } => 
+                Command::Add { url, email, destination, inline_images, do_not_inline_images, parameters } =>
                     store.add(url, email, destination, store.settings.config.inline(inline_images, do_not_inline_images), parameters),
-                RRSS2IMAP::Delete { feed } => store.delete(feed),
+                Command::Delete { feed } => store.delete(feed),
 
-                RRSS2IMAP::Reset => store.reset(),
+                Command::Reset => store.reset(),
 
-                RRSS2IMAP::Run => {
+                Command::Run => {
                     let handle = tokio::spawn(async move {
                         store.run().await
                     });
-                
+
                     // Wait for the spawned task to finish
                     let _res = handle.await;
                 }
 
-                RRSS2IMAP::Export { output } => store.export(output),
-                RRSS2IMAP::Import { input } => store.import(input),
+                Command::Export { output } => store.export(output),
+                Command::Import { input } => store.import(input),
             }
         },
         Err(e) => {
-            error!("Impossible to open store {}\n{}", store::STORE, e);
+            error!("Impossible to open store {}\n{}", store_path.to_string_lossy(), e);
         }
     }
     Ok(())
