@@ -19,12 +19,18 @@ pub enum Secure {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Email {
     /// imap server we want to connect to
-    server: String,
+    pub server: String,
     /// username used to connect to that server
     pub user: String,
     /// password used to connect to that server.
-    /// **WARNING** THis password is in **no way** encrypted, which makes rrss2imap a "not-so-secured" software
-    password: String,
+    ///
+    /// The password is securely stored using the keyring crate.  To update
+    /// the password, edit the placeholder in the configuration file and
+    /// re-run rrss2imap.
+    ///
+    /// **WARNING** In case storing the password securely fails, the password
+    /// is stored in PLAIN-TEXT in the configuration file.
+    pub password: String,
     /// secured connection state
     #[serde(default = "Email::default_secure")]
     secure: Secure,
