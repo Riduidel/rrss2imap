@@ -19,13 +19,13 @@ pub fn export(to_file: &PathBuf, to_store: &Store) {
 fn group_feeds(to_store: &Store) -> HashMap<String, Vec<Feed>> {
     to_store.feeds.iter().fold(HashMap::new(), |mut map, feed| {
         let feed = feed.clone();
-        let folder = feed.clone().config.get_folder(&to_store.settings.config);
+        let folder = feed.config.get_folder(&to_store.settings.config);
         if !map.contains_key(&folder) {
             map.insert(folder.clone(), vec![]);
         }
         let mut updated = vec![feed];
         updated.append(map.get_mut(&folder).unwrap());
-        map.insert(folder.clone(), updated);
+        map.insert(folder, updated);
         // Return value of closure (which is *not* a return statement ;-)
         map
     })

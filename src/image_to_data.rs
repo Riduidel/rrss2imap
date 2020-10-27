@@ -2,8 +2,8 @@ use super::settings::*;
 
 use kuchiki::*;
 
-use base64;
-use reqwest;
+
+
 
 pub fn transform(document: NodeRef, _settings: &Settings) -> NodeRef {
     for node_ref in document.select("img").unwrap() {

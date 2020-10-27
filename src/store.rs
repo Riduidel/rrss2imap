@@ -7,7 +7,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Read;
 
-use serde_json;
+
 
 use futures::stream::StreamExt;
 use futures::stream::futures_unordered::FuturesUnordered;
@@ -74,15 +74,15 @@ impl Store {
                 serde_json::from_str(&contents)?;
             store.path = path.to_owned();
             // And return it
-            return Ok(store);
+            Ok(store)
         } else {
             info!("Using fresh config file {}", path.to_string_lossy());
-            return Ok(Store {
+            Ok(Store {
                 settings: Settings::default(),
                 feeds: vec![],
                 dirty: false,
                 path: path.to_owned()
-            });
+            })
         }
     }
 

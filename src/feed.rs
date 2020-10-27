@@ -35,7 +35,7 @@ impl Feed {
 
     // Convert the parameters vec into a valid feed (if possible)
     pub fn from_vec(parameters: Vec<String>) -> Feed {
-        let mut consumed = parameters.clone();
+        let mut consumed = parameters;
         let url: String = consumed
             .pop()
             .expect("You must at least define an url to add.");

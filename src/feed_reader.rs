@@ -55,7 +55,7 @@ pub trait Reader<EntryType, FeedType> {
                 }
             }
         }
-        return (head, tail, found);
+        (head, tail, found)
     }
 
     fn write_new_messages(&self, feed:&Feed, settings:&Settings, extracted:Vec<Result<Message, UnparseableFeed>>)->Feed {
@@ -83,10 +83,8 @@ pub trait Reader<EntryType, FeedType> {
         // So, to overcome last problem, if first filtered message has same date than last_message, we replace last by first
         // As RSS feeds are supposed to put the latest emitted message in first position
         match last_message {
-            Some(last) => if filtered_messages.len()>1 {
-                if filtered_messages[0].last_date==last.last_date {
-                    last_message = Some(filtered_messages[0].clone());
-                }
+            Some(last) => if filtered_messages.len()>1 && filtered_messages[0].last_date==last.last_date {
+                last_message = Some(filtered_messages[0].clone());
             },
             _ => {}
         }
@@ -103,7 +101,7 @@ pub trait Reader<EntryType, FeedType> {
                 _ => {}
             }
         }
-        return returned;
+        returned
     }
 
     fn extract(&self, entry:&EntryType, source:&FeedType) -> Result<Message, UnparseableFeed>;
@@ -124,13 +122,13 @@ pub trait Reader<EntryType, FeedType> {
             .filter(|e| e.is_err())
             .fold(0, |acc, _| acc + 1);
         if date_errors==0 {
-            return self.write_new_messages(feed, settings, extracted);
+            self.write_new_messages(feed, settings, extracted)
         } else {
             warn!("There were problems getting content from feed {}. It may not be complete ...
             I strongly suggest you enter an issue on GitHub by following this link
             https://github.com/Riduidel/rrss2imap/issues/new?title=Incorrect%20feed&body=Feed%20at%20url%20{}%20doesn't%20seems%20to%20be%20parseable", 
             feed.url, feed.url);
-            return feed.clone();
+            feed.clone()
         }
     }
 }
@@ -181,30 +179,27 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
             .naive_utc();
         let content = match entry.content() {
             Some(content) => content.value().unwrap(),
-            None => match entry.summary() {
-                Some(summary) => summary,
-                None => "",
-            },
+            None => entry.summary().unwrap_or(""),
         }
         .to_owned();
         let message = Message {
-            authors: authors,
-            content: content,
+            authors,
+            content,
             id: entry.id().to_owned(),
-            last_date: last_date,
+            last_date,
             links: entry.links().iter().map(|l| l.href().to_owned()).collect(),
             title: entry.title().to_owned(),
         };
-        return Ok(message);
+        Ok(message)
     }
 
     fn read_feed_date(&self, source:&AtomFeed)->NaiveDateTime {
         let feed_date_text = source.updated();
-        return if feed_date_text.is_empty() {
+        if feed_date_text.is_empty() {
             Feed::at_end_of_universe()
         } else {
             feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc()
-        };
+        }
     }
 
     fn extract_messages(&self, source:&AtomFeed)->Vec<Result<Message, UnparseableFeed>> {
@@ -241,13 +236,13 @@ impl RssReader {
     fn try_hard_to_parse(date:String) -> Result<DateTime<FixedOffset>, UnparseableFeed> {
         let parsed = rfc822_sanitizer::parse_from_rfc2822_with_fallback(&date);
         if parsed.is_ok() {
-            return Ok(parsed?);
+            Ok(parsed?)
         } else {
             let retry = DateTime::parse_from_rfc3339(&date);
             if retry.is_ok() {
-                return Ok(retry?);
+                Ok(retry?)
             } else {
-                return Err(UnparseableFeed::DateIsNeitherRFC2822NorRFC3339 {value:date});
+                Err(UnparseableFeed::DateIsNeitherRFC2822NorRFC3339 {value:date})
             }
         }
     }
@@ -256,24 +251,24 @@ impl RssReader {
         if entry.pub_date().is_some() {
             let mut pub_date = entry.pub_date().unwrap().to_owned();
             pub_date = pub_date.replace("UTC", "UT");
-            return RssReader::try_hard_to_parse(pub_date);
+            RssReader::try_hard_to_parse(pub_date)
         } else if entry.dublin_core_ext().is_some()
-            && entry.dublin_core_ext().unwrap().dates().len() > 0
+            && !entry.dublin_core_ext().unwrap().dates().is_empty()
         {
             let pub_date = &entry.dublin_core_ext().unwrap().dates()[0];
-            return Ok(DateTime::parse_from_rfc3339(&pub_date)?);
+            Ok(DateTime::parse_from_rfc3339(&pub_date)?)
         } else {
             debug!("feed item {:?} date can't be parsed, as it doesn't have neither pub_date nor dc:pub_date. We will replace it with feed date if possible",
                 &entry.link()
             );
             if feed.pub_date().is_some() {
                 let pub_date = feed.pub_date().unwrap().to_owned();
-                return RssReader::try_hard_to_parse(pub_date);
+                RssReader::try_hard_to_parse(pub_date)
             } else if feed.last_build_date().is_some() {
                 let last_pub_date = feed.last_build_date().unwrap().to_owned();
-                return RssReader::try_hard_to_parse(last_pub_date);
+                RssReader::try_hard_to_parse(last_pub_date)
             } else {
-                return Ok(DateTime::<FixedOffset>::from_utc(Feed::at_epoch(), FixedOffset::east(0)));
+                Ok(DateTime::<FixedOffset>::from_utc(Feed::at_epoch(), FixedOffset::east(0)))
             }
         }
     }
@@ -303,14 +298,14 @@ impl Reader<RssItem, RssChannel> for RssReader {
         };
         let last_date = RssReader::extract_date_from_rss(entry, source);
         let message = Message {
-            authors: authors,
-            content: content,
-            id: id,
+            authors,
+            content,
+            id,
             last_date: last_date?.naive_utc(),
-            links: links,
+            links,
             title: entry.title().unwrap_or("").to_owned(),
         };
-        return Ok(message);
+        Ok(message)
     }
 
     fn extract_messages(&self, source:&RssChannel)->Vec<Result<Message, UnparseableFeed>> {
@@ -329,9 +324,9 @@ impl Reader<RssItem, RssChannel> for RssReader {
                 None => n.to_rfc2822(),
             },
         };
-        return DateTime::parse_from_rfc2822(&feed_date_text)
+        DateTime::parse_from_rfc2822(&feed_date_text)
             .unwrap()
-            .naive_utc();
+            .naive_utc()
         
     }
 }

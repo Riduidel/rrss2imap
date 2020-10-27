@@ -56,7 +56,7 @@ impl Config {
         config.email.is_none()
             && config.folder.is_none()
             && config.from.is_none()
-            && config.inline_image_as_data == false
+            && !config.inline_image_as_data
     }
 
     /// Clear all content from this config excepted email address
@@ -81,9 +81,9 @@ impl Config {
     /// Compute an inline flag by resolving the two flags with this struct inline images status
     pub fn inline(&self, inline:bool, do_not_inline:bool)->bool {
         if self.inline_image_as_data {
-            return !do_not_inline
+            !do_not_inline
         } else {
-            return inline
+            inline
         }
     }
 }

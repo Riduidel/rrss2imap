@@ -7,7 +7,7 @@ pub fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec
             sanitize_email(author, &domain)
         })
         .collect();
-    return fixed;
+    fixed
 }
 
 fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
@@ -41,7 +41,7 @@ fn sanitize_email(email:&String, domain:&String)->String {
         // Remove bad characters
         let trimmed:String = trim_to_chars(email, vec!["|", ":", "-", "<", ">"]);
         let lowercased = trimmed.to_lowercase();
-        let tuple = (trimmed.clone(),
+        let tuple = (trimmed,
                     BAD_CHARACTER_REMOVER.replace_all(&lowercased, "_")
                 );
         return format!("{} <{}@{}>", tuple.0, tuple.1, domain);
