@@ -152,45 +152,14 @@ To perform a release, you'll also need
 
 #### Installing
 
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
+1. Dowload latest version from [Github releases page](https://github.com/Riduidel/rrss2imap/releases)
+1. Run `rrss2imap new` which will create the `config.json`
+1. Fill the missing parts (typically include email configuration)
+1. Run with `rrss2imap run`
 
 ### Running the tests
 
-Explain how to run the automated tests for this system
-
-#### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-#### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
+Automated tests can be run with `cargo test`
 
 ## Built With
 
