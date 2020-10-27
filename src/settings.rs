@@ -58,7 +58,7 @@ impl Email {
     pub fn append<S: AsRef<str>, B: AsRef<[u8]>>(&self, mailbox: &S, content: &B) -> Result<()> {
         let mut count = 0;
         loop {
-            count = count + 1;
+            count += 1;
             let mut imap = self.start();
             let result = imap.append(mailbox, content);
             if result.is_err() {

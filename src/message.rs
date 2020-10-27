@@ -139,9 +139,9 @@ impl Message {
             if document.serialize(&mut bytes).is_err() {
                 return Err(UnprocessableMessage::CantWriteTransformedMessage);
             }
-            return Ok(String::from_utf8(bytes).unwrap());
+            Ok(String::from_utf8(bytes).unwrap())
         } else {
-            return Ok(content.clone());
+            Ok(content.clone())
         }
     }
 
@@ -154,7 +154,7 @@ impl Message {
         context.insert("from", &self.authors);
         context.insert("to", &feed.config.get_email(&settings.config));
         context.insert("date", &self.date_text());
-        return Ok(context)
+        Ok(context)
     }
 
     fn date_text(&self) -> String {
