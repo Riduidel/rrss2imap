@@ -26,32 +26,84 @@ pub trait Reader<EntryType, FeedType> {
         }
     }
 
-    fn filter_message(&self, feed:&Feed, m:&Message)->bool {
-        return m.last_date>feed.last_updated;
+    /// Find in the given input feed the new messages
+    /// A message is considered new if it has a date which is nearer than feed last processed date
+    /// or (because RSS and Atom feeds may not have dates) if its id is not yet the id of the last
+    /// processed feed
+    fn find_new_messages(&self, feed:&Feed, sorted_messages:&[&Message])->(usize, usize, bool) {
+        let head:usize = 0;
+        let mut tail:usize = 0;
+        let mut found = false;
+        // Now do the filter
+        // This part is not so easy.
+        // we will first iterate over the various items and for each, check that
+        // 1 - the message id is not the last read message one
+        // 2 - if messages have dates, the message date is more recent than the last one
+        for (position, message) in sorted_messages.iter().enumerate() {
+            if !found {
+                match &feed.last_message {
+                    Some(id) => if id==&message.id {
+                        tail = position; 
+                        found = true;
+                        break;
+                    },
+                    None => {}
+                };
+                if message.last_date<feed.last_updated {
+                    tail = position; 
+                    found = true;
+                }
+            }
+        }
+        return (head, tail, found);
     }
 
     fn write_new_messages(&self, feed:&Feed, settings:&Settings, extracted:Vec<Result<Message, UnparseableFeed>>)->Feed {
-        return extracted.iter()
+        let sorted_messages:Vec<&Message> = extracted.iter()
             .filter(|e| e.is_ok())
             .map(|e| e.as_ref().unwrap())
-            .filter(|m| self.filter_message(feed, m))
+            .collect::<Vec<&Message>>();
+        let (head, tail, found) = self.find_new_messages(feed, &sorted_messages);
+        let filtered_messages:&[&Message] = if found {
+            &sorted_messages[head..tail]
+        } else {
+            sorted_messages.as_slice()
+        };
+
+        // And write the messages into IMAP and the feed into JSON
+        let written_messages:Vec<Message> = filtered_messages.iter()
             .map(|message| self.process_message(feed, settings, message))
             .inspect(|e| if !settings.do_not_save { e.write_to_imap(&feed, settings) } )
-            .map(|e| e.last_date)
-            .max()
-            .map_or_else(
-                || feed.clone(),
-                |feed_date| Feed {
-                    url: feed.url.clone(),
-                    config: feed.config.clone(),
-                    last_updated: if settings.do_not_save {
-                        warn!("do_not_save is set. As a consequence, feed won't be updated");
-                        feed.last_updated
-                    } else {
-                        feed_date
-                    }
+            .collect();
+        let mut last_message:Option<&Message> = written_messages.iter()
+            // ok, there is a small problem here: if at least two elements have the same value - which is the case when feed
+            // elements have no dates - the LAST one is used (which is **not** what we want)
+            // see https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.max_by_key
+            .max_by_key(|e| e.last_date.timestamp());
+        // So, to overcome last problem, if first filtered message has same date than last_message, we replace last by first
+        // As RSS feeds are supposed to put the latest emitted message in first position
+        match last_message {
+            Some(last) => if filtered_messages.len()>1 {
+                if filtered_messages[0].last_date==last.last_date {
+                    last_message = Some(filtered_messages[0].clone());
                 }
-            );
+            },
+            _ => {}
+        }
+        
+        let mut returned = feed.clone();
+        if settings.do_not_save {
+            warn!("do_not_save is set. As a consequence, feed won't be updated");
+        } else {
+            match last_message {
+                Some(message) => {
+                    returned.last_updated = message.last_date;
+                    returned.last_message = Some(message.id.clone());
+                },
+                _ => {}
+            }
+        }
+        return returned;
     }
 
     fn extract(&self, entry:&EntryType, source:&FeedType) -> Result<Message, UnparseableFeed>;
@@ -211,7 +263,7 @@ impl RssReader {
             let pub_date = &entry.dublin_core_ext().unwrap().dates()[0];
             return Ok(DateTime::parse_from_rfc3339(&pub_date)?);
         } else {
-            error!("feed item {:?} date can't be parsed, as it doesn't have neither pub_date nor dc:pub_date. We will replace it with feed date if possible",
+            debug!("feed item {:?} date can't be parsed, as it doesn't have neither pub_date nor dc:pub_date. We will replace it with feed date if possible",
                 &entry.link()
             );
             if feed.pub_date().is_some() {
@@ -221,7 +273,7 @@ impl RssReader {
                 let last_pub_date = feed.last_build_date().unwrap().to_owned();
                 return RssReader::try_hard_to_parse(last_pub_date);
             } else {
-                return Err(UnparseableFeed::NoDateFound);
+                return Ok(DateTime::<FixedOffset>::from_utc(Feed::at_epoch(), FixedOffset::east(0)));
             }
         }
     }

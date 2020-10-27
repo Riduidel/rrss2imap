@@ -9,11 +9,18 @@ use reqwest::Client;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
+    /// Contains url of feed
     pub url: String,
+    /// Contains specific configuration for field
     #[serde(skip_serializing_if = "Config::is_none", default = "Config::new")]
     pub config: Config,
+    /// Last time the feed was read
     #[serde(default = "Feed::at_epoch")]
     pub last_updated: NaiveDateTime,
+    /// Last message stored in IMAP, allows to correctly process feeds even when no date is provided
+    /// which, mind you, is totally possible according to RSS specification
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_message: Option<String>
 }
 
 impl Feed {
@@ -63,6 +70,7 @@ impl Feed {
                 inline_image_as_data: false,
             },
             last_updated: Feed::at_epoch(),
+            last_message: None
         }
     }
 
@@ -76,6 +84,7 @@ impl Feed {
                 inline_image_as_data: inline,
             },
             last_updated: Feed::at_epoch(),
+            last_message: None
         }
     }
 
