@@ -55,6 +55,7 @@ fn import_outline(outline: Element, to_store: &mut Store, folder: &str) {
                     inline_image_as_data: false,
                 },
                 last_updated: Feed::at_epoch(),
+                last_message: None,
             };
             to_store.add_feed(feed);
         } else {
