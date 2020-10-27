@@ -1,0 +1,26 @@
+on:
+  push:
+    branches:
+      - master
+name: Apply clippy and PR changes
+jobs:
+  clippy_apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          components: clippy
+          override: true
+      - run: rustup component add clippy
+      - run: cargo clippy --fix -Z unstable-options
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch-suffix: timestamp
+          commit-message: "style(lint): automatically applied clippy lint"
+          body: Automated changes from clippy 
+          title: "Automatic lint from clippy"
+
