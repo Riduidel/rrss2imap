@@ -32,7 +32,7 @@ serde_json = "1.0"
 treexml = "0.7"
 # Used to get feed entries (and images, when it will be possible)
 atom_syndication = "0.6"
-rss = "1.8"
+rss = "1.9"
 chrono = { version = "0.4", features = ["serde"] }
 rfc822_sanitizer = "0.3"
 # A good html parser to allow generation of valid mail messages
