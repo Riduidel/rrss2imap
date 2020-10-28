@@ -173,7 +173,7 @@ impl Store {
     /// This should be rewritten to allow optimization/parallelism
     pub async fn run(&mut self) {
         self.dirty = true;
-        let client = reqwest::Client::builder()
+        let client = reqwest::blocking::Client::builder()
             .build().unwrap();
         let feeds_length = self.feeds.len();
         // Initialize mail server before processing feeds
