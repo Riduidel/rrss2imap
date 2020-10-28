@@ -18,7 +18,7 @@ pub fn transform(document: NodeRef, _settings: &Settings) -> NodeRef {
                     let image_bytes = response.bytes().await.unwrap();
                     let encoded = base64::encode(&image_bytes);
                     let image_mime_type = tree_magic::from_u8(&image_bytes);
-*/                if let Ok(mut response) = reqwest::get(src) {
+*/                if let Ok(mut response) = reqwest::blocking::get(src) {
                     let mut image: Vec<u8> = vec![];
                     response.copy_to(&mut image).unwrap();
                     let image_bytes = image.as_slice();

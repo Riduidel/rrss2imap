@@ -174,8 +174,6 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
         let authors = AtomReader::extract_authors_from_atom(entry, source);
         let last_date = entry
             .updated()
-            .parse::<DateTime<Utc>>()
-            .unwrap()
             .naive_utc();
         let content = match entry.content() {
             Some(content) => content.value().unwrap(),
@@ -194,12 +192,7 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
     }
 
     fn read_feed_date(&self, source:&AtomFeed)->NaiveDateTime {
-        let feed_date_text = source.updated();
-        if feed_date_text.is_empty() {
-            Feed::at_end_of_universe()
-        } else {
-            feed_date_text.parse::<DateTime<Utc>>().unwrap().naive_utc()
-        }
+        source.updated().naive_utc()
     }
 
     fn extract_messages(&self, source:&AtomFeed)->Vec<Result<Message, UnparseableFeed>> {

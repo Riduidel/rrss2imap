@@ -5,7 +5,7 @@ use super::config::*;
 use super::feed_reader::*;
 use super::settings::*;
 use super::syndication;
-use reqwest::Client;
+use reqwest::blocking::Client;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feed {
@@ -95,7 +95,7 @@ impl Feed {
     pub async fn read(&self, index:usize, count:&usize, client:&Client, settings: &Settings) -> Feed {
         info!("Reading feed {}/{} from {}", index+1, count, self.url);
         match client.get(&self.url).send() {
-            Ok(mut response) => match response.text() {
+            Ok(response) => match response.text() {
                 Ok(text) => match text.parse::<syndication::Feed>() {
                     Ok(parsed) => {
                         return match parsed {

@@ -109,32 +109,8 @@ impl Email {
     pub fn start(&self) -> Imap {
         match self.secure {
             Secure::Yes(port) => self.start_secure(port),
-            Secure::No(port) => self.start_insecure(port),
+            Secure::No(port) => panic!("rrss2map no more supports unsecured connection to IMAP server due to evolutions of IMAP library (see https://github.com/jonhoo/rust-imap/pull/140)"),
         }
-    }
-
-    fn start_insecure(&self, port: u16) -> Imap {
-        // we pass in the domain twice to check that the server's TLS
-        // certificate is valid for the domain we're connecting to.
-        let client = imap::connect_insecure((self.server.as_str(), port))
-            .unwrap_or_else(|_| panic!("Couldn't connect to {}:{}", self.server, port));
-
-        // the client we have here is unauthenticated.
-        // to do anything useful with the e-mails, we need to log in
-        let imap_session = client
-            .login(&self.user, &self.password)
-            .unwrap_or_else(|_| {
-                panic!(
-                    "Couldn't isnecurely connect to {}:{} for login {}",
-                    self.server, port, self.user
-                )
-            });
-
-        debug!(
-            "Successfully connected to INSECURE imap server {}",
-            self.server
-        );
-        Imap::Insecured(imap_session)
     }
 
     fn start_secure(&self, port: u16) -> Imap {
