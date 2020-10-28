@@ -39,7 +39,7 @@ rfc822_sanitizer = "0.3"
 # kuchiki is in fact a layer over html5ever, which adds easier tree traversal/transformation
 kuchiki = "0.8"
 # And an imap connector, obviously
-imap = "1.0"
+imap = "2.3"
 native-tls = "0.2"
 # Used to generate html text messages from initial entries
 tera = "1.5"
