@@ -37,7 +37,7 @@ chrono = { version = "0.4", features = ["serde"] }
 rfc822_sanitizer = "0.3"
 # A good html parser to allow generation of valid mail messages
 # kuchiki is in fact a layer over html5ever, which adds easier tree traversal/transformation
-kuchiki = "0.7"
+kuchiki = "0.8"
 # And an imap connector, obviously
 imap = "1.0"
 native-tls = "0.2"
