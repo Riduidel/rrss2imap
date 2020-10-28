@@ -146,9 +146,16 @@ You need a complete rust build chain
 
 To perform a release, you'll also need
 
-* [cargo make](https://github.com/sagiegurari/cargo-make#usage-predefined-flows)
 * [cargo release](https://github.com/sunng87/cargo-release)
 * [git journal](https://github.com/saschagrunert/git-journal)
+
+##### Releasing
+
+1. Run `cargo release`. This will build a version of the code, push it onto crates/io and tag the repository.
+Thanks to GitHub Actions (and more specifically the `on_tag.yml` one), once the tag is pushed to GitHub, a release is created.
+1. Publish the release. This will trigger the `on_release_created.yml` which will build executables for the target platforms and attach them to the release.
+
+And release is done! It was easy, no?
 
 #### Installing
 
