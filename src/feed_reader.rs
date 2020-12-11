@@ -155,9 +155,7 @@ impl AtomReader {
         return feed
             .links()
             .iter()
-            .filter(|link| link.rel() == "self" || link.rel() == "alternate")
-            .filter(|link| !link.href().is_empty())
-            .next()
+            .filter(|link| link.rel() == "self" || link.rel() == "alternate").find(|link| !link.href().is_empty())
             // Get the link
             .map(|link| link.href())
             // Transform it into an url
