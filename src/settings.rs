@@ -109,7 +109,7 @@ impl Email {
     pub fn start(&self) -> Imap {
         match self.secure {
             Secure::Yes(port) => self.start_secure(port),
-            Secure::No(port) => panic!("rrss2map no more supports unsecured connection to IMAP server due to evolutions of IMAP library (see https://github.com/jonhoo/rust-imap/pull/140)"),
+            Secure::No(_port) => panic!("rrss2map no more supports unsecured connection to IMAP server due to evolutions of IMAP library (see https://github.com/jonhoo/rust-imap/pull/140)"),
         }
     }
 
