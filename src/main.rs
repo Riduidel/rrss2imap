@@ -264,12 +264,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let opt = RRSS2IMAP::from_args();
 
     // Configure logger
-    Logger::with_env_or_str(
+    Logger::try_with_env_or_str(
         match opt.verbose {
             0 => "warn",
             1 => "warn, rrss2imap = info",
             2 => "warn, rrss2imap = info",
             _ => "trace", })
+        .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e))
         .format(match opt.verbose {
             0 => flexi_logger::colored_default_format,
             1 => flexi_logger::colored_default_format,

@@ -1,4 +1,4 @@
-use chrono::{NaiveDateTime, NaiveDate};
+use chrono::{NaiveDateTime};
 
 use super::config::*;
 
@@ -27,10 +27,6 @@ impl Feed {
     /// Creates a new naivedatetime with a default value (which is, to my mind) a sensible default for computers
     pub fn at_epoch() -> NaiveDateTime {
         NaiveDateTime::from_timestamp(0, 0)
-    }
-
-    pub fn at_end_of_universe() -> NaiveDateTime {
-        NaiveDate::from_ymd(9999, 1, 1).and_hms_milli(0, 0, 0, 0)
     }
 
     // Convert the parameters vec into a valid feed (if possible)
