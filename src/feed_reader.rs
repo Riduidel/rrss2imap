@@ -146,7 +146,7 @@ impl AtomReader {
             .map(|a| a.name().to_owned())
             .collect();
         if message_authors.is_empty() {
-            message_authors = vec![feed.title().to_owned()]
+            message_authors = vec![feed.title().to_owned().to_string()]
         }
         sanitize_message_authors(message_authors, domain)
     }
@@ -177,7 +177,10 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
             .naive_utc();
         let content = match entry.content() {
             Some(content) => content.value().unwrap(),
-            None => entry.summary().unwrap_or(""),
+            None => match entry.summary() {
+                Some(text)=> text.as_str(),
+                None=>""
+            }
         }
         .to_owned();
         let message = Message {
@@ -186,7 +189,7 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
             id: entry.id().to_owned(),
             last_date,
             links: entry.links().iter().map(|l| l.href().to_owned()).collect(),
-            title: entry.title().to_owned(),
+            title: entry.title().as_str().to_string()
         };
         Ok(message)
     }
