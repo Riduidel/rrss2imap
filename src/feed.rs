@@ -96,10 +96,10 @@ impl Feed {
                     Ok(parsed) => {
                         return match parsed {
                             syndication::Feed::Atom(atom_feed) => {
-                                AtomReader {}.read(self, &atom_feed, &settings)
+                                AtomReader {}.read(self, &atom_feed, settings)
                             }
                             syndication::Feed::RSS(rss_feed) => {
-                                RssReader {}.read(self, &rss_feed, &settings)
+                                RssReader {}.read(self, &rss_feed, settings)
                             }
                         }
                     }
