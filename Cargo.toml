@@ -47,7 +47,7 @@ tera = "1.5"
 lazy_static = "1.4"
 base64 = "0.13"
 # Seems like reqwests 0.10 do the futures jump (and I'm not ready for that)
-reqwest = { version = "0.10", features = ["blocking"] }
+reqwest = { version = "0.11", features = ["blocking"] }
 openssl-probe = "0.1"
 xhtmlchardet = "2.1"
 human-panic = "1.0"
