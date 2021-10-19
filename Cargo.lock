@@ -2619,7 +2619,7 @@ dependencies = [
 
 [[package]]
 name = "rrss2imap"
-version = "0.3.6-alpha.0"
+version = "0.3.6"
 dependencies = [
  "assert_cli",
  "async-std",
