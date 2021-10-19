@@ -13,7 +13,6 @@ edition = "2018"
 # This is only valid for the archive available in crates.io, not for the generated executable
 include = [ "templates/*", "src/**/*", "Cargo.toml" ]
 # This allows renaming of tag name to be consistent with already long history of rrss2imap versions
-tag-name = "{{version}}"
 
 [badges]
 travis-ci = { repository = "Riduidel/rrss2imap", branch = "master" }
