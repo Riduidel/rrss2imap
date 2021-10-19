@@ -73,7 +73,7 @@ pub trait Reader<EntryType, FeedType> {
         // And write the messages into IMAP and the feed into JSON
         let written_messages:Vec<Message> = filtered_messages.iter()
             .map(|message| self.process_message(feed, settings, message))
-            .inspect(|e| if !settings.do_not_save { e.write_to_imap(&feed, settings) } )
+            .inspect(|e| if !settings.do_not_save { e.write_to_imap(feed, settings) } )
             .collect();
         let mut last_message:Option<&Message> = written_messages.iter()
             // ok, there is a small problem here: if at least two elements have the same value - which is the case when feed
@@ -155,9 +155,7 @@ impl AtomReader {
         return feed
             .links()
             .iter()
-            .filter(|link| link.rel() == "self" || link.rel() == "alternate")
-            .filter(|link| !link.href().is_empty())
-            .next()
+            .filter(|link| link.rel() == "self" || link.rel() == "alternate").find(|link| !link.href().is_empty())
             // Get the link
             .map(|link| link.href())
             // Transform it into an url
@@ -201,7 +199,7 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
     fn extract_messages(&self, source:&AtomFeed)->Vec<Result<Message, UnparseableFeed>> {
         source.entries()
             .iter()
-            .map(|e| self.extract(e, &source))
+            .map(|e| self.extract(e, source))
             .collect()
     }
 }
@@ -252,7 +250,7 @@ impl RssReader {
             && !entry.dublin_core_ext().unwrap().dates().is_empty()
         {
             let pub_date = &entry.dublin_core_ext().unwrap().dates()[0];
-            Ok(DateTime::parse_from_rfc3339(&pub_date)?)
+            Ok(DateTime::parse_from_rfc3339(pub_date)?)
         } else {
             debug!("feed item {:?} date can't be parsed, as it doesn't have neither pub_date nor dc:pub_date. We will replace it with feed date if possible",
                 &entry.link()
@@ -307,7 +305,7 @@ impl Reader<RssItem, RssChannel> for RssReader {
     fn extract_messages(&self, source:&RssChannel)->Vec<Result<Message, UnparseableFeed>> {
         source.items()
             .iter()
-            .map(|e| self.extract(e, &source))
+            .map(|e| self.extract(e, source))
             .collect()
     }
 
