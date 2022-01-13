@@ -192,6 +192,6 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* [Rui Carno](https://github.com/rcarmo) for Python implementation of [rss2imap](https://github.com/rcarmo/rss2imap)
+* [Rui Carmo](https://github.com/rcarmo) for Python implementation of [rss2imap](https://github.com/rcarmo/rss2imap)
 * [Aaron Swartz](https://en.wikipedia.org/wiki/Aaron_Swartz) for [RSS](https://en.wikipedia.org/wiki/RSS) (and [rss2email](https://github.com/rss2email/rss2email))
 
