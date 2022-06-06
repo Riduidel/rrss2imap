@@ -13,9 +13,9 @@ dependencies = [
 
 [[package]]
 name = "aho-corasick"
-version = "0.7.6"
+version = "0.7.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58fb5e95d83b38284460a5fda7d6470aa0b8844d283a0b614b8535e880800d2d"
+checksum = "1e37cfd5e7657ada45f742d6e99ca5788580b5c529dc78faf11ece6dc702656f"
 dependencies = [
  "memchr",
 ]
@@ -799,7 +799,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "mime",
  "quoted_printable",
- "regex 1.4.1",
+ "regex 1.5.5",
  "textnonce",
  "time",
 ]
@@ -880,7 +880,7 @@ dependencies = [
  "glob",
  "lazy_static 1.4.0",
  "log",
- "regex 1.4.1",
+ "regex 1.5.5",
  "rustversion",
  "thiserror",
 ]
@@ -1126,11 +1126,11 @@ version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "925aa2cac82d8834e2b2a4415b6f6879757fb5c0928fc445ae76461a12eed8f2"
 dependencies = [
- "aho-corasick 0.7.6",
+ "aho-corasick 0.7.18",
  "bstr",
  "fnv",
  "log",
- "regex 1.4.1",
+ "regex 1.5.5",
 ]
 
 [[package]]
@@ -1438,9 +1438,9 @@ dependencies = [
  "lazy_static 1.4.0",
  "log",
  "memchr",
- "regex 1.4.1",
+ "regex 1.5.5",
  "same-file",
- "thread_local 0.3.6",
+ "thread_local",
  "walkdir",
  "winapi-util",
 ]
@@ -1458,7 +1458,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "native-tls",
  "nom 5.1.2",
- "regex 1.4.1",
+ "regex 1.5.5",
 ]
 
 [[package]]
@@ -1903,7 +1903,7 @@ version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7edc011af0ae98b7f88cf7e4a83b70a54a75d2b8cb013d6efd02e5956207e9eb"
 dependencies = [
- "regex 1.4.1",
+ "regex 1.5.5",
 ]
 
 [[package]]
@@ -2013,7 +2013,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "089a398ccdcdd77b8c38909d5a1e4b67da1bc4c9dbfe6d5b536c828eddb779e5"
 dependencies = [
- "regex 1.4.1",
+ "regex 1.5.5",
 ]
 
 [[package]]
@@ -2506,20 +2506,19 @@ dependencies = [
  "aho-corasick 0.6.10",
  "memchr",
  "regex-syntax 0.5.6",
- "thread_local 0.3.6",
+ "thread_local",
  "utf8-ranges",
 ]
 
 [[package]]
 name = "regex"
-version = "1.4.1"
+version = "1.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8963b85b8ce3074fecffde43b4b0dded83ce2f367dc8d363afc56679f3ee820b"
+checksum = "1a11647b6b25ff05a515cb92c365cec08801e83423a235b51e231e1808747286"
 dependencies = [
- "aho-corasick 0.7.6",
+ "aho-corasick 0.7.18",
  "memchr",
- "regex-syntax 0.6.20",
- "thread_local 1.0.1",
+ "regex-syntax 0.6.26",
 ]
 
 [[package]]
@@ -2533,9 +2532,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.6.20"
+version = "0.6.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cab7a364d15cde1e505267766a2d3c4e22a843e1a601f0fa7564c0f82ced11c"
+checksum = "49b3de9ec5dc0a3417da371aab17d729997c15010e7fd24ff707773a33bddb64"
 
 [[package]]
 name = "remove_dir_all"
@@ -2638,7 +2637,7 @@ dependencies = [
  "log",
  "native-tls",
  "openssl-probe",
- "regex 1.4.1",
+ "regex 1.5.5",
  "reqwest",
  "rfc822_sanitizer",
  "rss",
@@ -3126,7 +3125,7 @@ dependencies = [
  "pest",
  "pest_derive",
  "rand 0.7.0",
- "regex 1.4.1",
+ "regex 1.5.5",
  "serde",
  "serde_json",
  "slug",
@@ -3196,15 +3195,6 @@ name = "thread_local"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6b53e329000edc2b34dbe8545fd20e55a333362d0a321909685a19bd28c3f1b"
-dependencies = [
- "lazy_static 1.4.0",
-]
-
-[[package]]
-name = "thread_local"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d40c6d1b69745a6ec6fb1ca717914848da4b44ae29d9b3080cbee91d72a69b14"
 dependencies = [
  "lazy_static 1.4.0",
 ]
