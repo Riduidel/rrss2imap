@@ -1,4 +1,5 @@
 use chrono::{NaiveDateTime};
+use tests_bin::unit_tests;
 
 use super::config::*;
 
@@ -7,7 +8,8 @@ use super::settings::*;
 use super::syndication;
 use reqwest::blocking::Client;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[unit_tests("feed.rs")]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct Feed {
     /// Contains url of feed
     pub url: String,
