@@ -1,5 +1,14 @@
 use regex::Regex;
+use tests_bin::unit_tests;
 
+///
+/// Sanitize a list of message authors
+/// 
+/// # Arguments
+/// 
+/// * `message_authors` a list of message autros to sanitize
+/// * `domain` a default domain string, used when domain is given
+#[unit_tests("can_sanitize_message_authors.rs")]
 pub fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec<String> {
     let fixed = message_authors
         .iter()
@@ -10,6 +19,19 @@ pub fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec
     fixed
 }
 
+///
+/// Trim the input string using the given set of characters as potential separators
+/// 
+/// # Arguments
+/// 
+/// * `text` text to trim
+/// * `characters` characters to use as separator
+/// 
+/// # Return
+/// 
+/// The trimmed text
+/// 
+#[unit_tests("can_trim_to_chars.rs")]
 fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
     let mut remaining = text;
     for cutter in characters {
@@ -19,7 +41,11 @@ fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
     remaining.to_string()
 }
 
-fn sanitize_email(email:&String, domain:&String)->String {
+///
+/// Sanitizes email using  "good" regular expression
+/// (which I obviously don't understand anymore) able to remove unwanted characters in email address
+#[unit_tests("can_sanitize_email.rs")]
+pub fn sanitize_email(email:&String, domain:&String)->String {
     lazy_static! {
         static ref EMAIL_AND_NAME_DETECTOR:Regex = 
             Regex::new("([[:alpha:]_%\\+\\-\\.]+@[[:alpha:]_%\\+\\-]+\\.[[:alpha:]_%\\+\\-]+{1,}) \\(([^\\)]*)\\)").unwrap();
@@ -45,43 +71,5 @@ fn sanitize_email(email:&String, domain:&String)->String {
                     BAD_CHARACTER_REMOVER.replace_all(&lowercased, "_")
                 );
         return format!("{} <{}@{}>", tuple.0, tuple.1, domain);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    mod email_tests {
-        use super::super::*;
-
-        #[test]
-        fn can_create_email_from_flo() {
-            assert_eq!("F(lo) <f_lo_@linuxfr.org>", sanitize_email(&"F(lo)".to_string(), &"linuxfr.org".to_string()));
-        }
-
-        #[test]
-        fn can_create_email_from_blog_a_part() {
-            assert_eq!("Blog à part <blog___part@alias.erdorin.org>", sanitize_email(&"Blog à part".to_string(), &"alias.erdorin.org".to_string()));
-        }
-
-        #[test]
-        fn can_create_email_from_xkcd() {
-            assert_eq!("xkcd.com <xkcd.com@xkcd.com>", sanitize_email(&"xkcd.com".to_string(), &"xkcd.com".to_string()));
-        }
-
-        #[test]
-        fn can_create_email_from_sex_at_liberation() {
-            assert_eq!("sexes.blogs.liberation.fr <sexes.blogs.liberation.fr@sexes.blogs.liberation.fr>", 
-                sanitize_email(
-                    &"sexes.blogs.liberation.fr - Derniers articles".to_string(), 
-                    &"sexes.blogs.liberation.fr".to_string()));
-        }
-
-        #[test]
-        fn can_create_email_from_real_address_at_sex_at_liberation() {
-            assert_eq!("Agnès Giard <aniesu.giard@gmail.com>", 
-                sanitize_email(
-                    &"aniesu.giard@gmail.com (Agnès Giard)".to_string(), 
-                    &"sexes.blogs.liberation.fr".to_string()));
-        }
     }
 }

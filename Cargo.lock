@@ -2689,6 +2689,7 @@ dependencies = [
  "serde_json",
  "structopt",
  "tera",
+ "tests_bin",
  "tokio 1.28.2",
  "tree_magic",
  "treexml",
@@ -3194,6 +3195,12 @@ dependencies = [
  "thread_local",
  "unic-segment",
 ]
+
+[[package]]
+name = "tests_bin"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c78a626ce9ba7bb0fefd7de88d768137df50a683d9c52c3717cae11095a101d"
 
 [[package]]
 name = "textnonce"
