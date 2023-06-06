@@ -30,7 +30,7 @@ fn sanitize_email(email:&String, domain:&String)->String {
     }
     if EMAIL_AND_NAME_DETECTOR.is_match(email) {
         let captures = EMAIL_AND_NAME_DETECTOR.captures(email).unwrap();
-        return format!("{} <{}>", captures.get(2).unwrap().as_str(), captures.get(1).unwrap().as_str());
+        format!("{} <{}>", captures.get(2).unwrap().as_str(), captures.get(1).unwrap().as_str())
     } else {
         // When no email is provided, use domain name
         let email = if email.is_empty() {
@@ -44,7 +44,7 @@ fn sanitize_email(email:&String, domain:&String)->String {
         let tuple = (trimmed,
                     BAD_CHARACTER_REMOVER.replace_all(&lowercased, "_")
                 );
-        return format!("{} <{}@{}>", tuple.0, tuple.1, domain);
+        format!("{} <{}@{}>", tuple.0, tuple.1, domain)
     }
 }
 

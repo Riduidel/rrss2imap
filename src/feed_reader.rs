@@ -60,8 +60,7 @@ pub trait Reader<EntryType, FeedType> {
 
     fn write_new_messages(&self, feed:&Feed, settings:&Settings, extracted:Vec<Result<Message, UnparseableFeed>>)->Feed {
         let sorted_messages:Vec<&Message> = extracted.iter()
-            .filter(|e| e.is_ok())
-            .map(|e| e.as_ref().unwrap())
+            .filter_map(|e| e.as_ref().ok())
             .collect::<Vec<&Message>>();
         let (head, tail, found) = self.find_new_messages(feed, &sorted_messages);
         let filtered_messages:&[&Message] = if found {
