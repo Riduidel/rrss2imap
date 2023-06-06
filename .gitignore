@@ -4,3 +4,4 @@
 **/*.rs.bk
 config.json
 test-results/
+cobertura.xml
