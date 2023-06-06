@@ -23,7 +23,7 @@ pub fn import(from_file: &PathBuf, to_store: &mut Store) {
     for element in root.children {
         match element.name.as_ref() {
             "head" => debug!("Reading {}", element),
-            "body" => import_body(element, to_store, &"".to_owned()),
+            "body" => import_body(element, to_store, ""),
             _ => error!("element {:?} was unexpected, please fill a bug !", element),
         }
     }

@@ -54,7 +54,7 @@ impl Feed {
         }
         // If there is a third parameter, it is the folder.
         // But if folder was already defined, there is an error !
-        if !consumed.is_empty() && folder == None {
+        if !consumed.is_empty() && folder.is_none() {
             folder = Some(consumed.pop().unwrap());
         }
         Feed {
@@ -85,7 +85,7 @@ impl Feed {
     }
 
     pub fn to_string(&self, config: &Config) -> String {
-        return format!("{} {}", self.url, self.config.clone().to_string(config));
+        format!("{} {}", self.url, self.config.clone().to_string(config))
     }
 
     pub async fn read(&self, index:usize, count:&usize, client:&Client, settings: &Settings) -> Feed {
