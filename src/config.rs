@@ -37,7 +37,7 @@ impl Config {
     /// More precisely, outputs the email address and folder in which entries are to be written
     /// A default config is given for options set to None.
     pub fn to_string(self, default: &Config) -> String {
-        return format!(
+        format!(
             "(to: {}) {}",
             self.email.unwrap_or_else(|| format!(
                 "{} (default)",
@@ -47,7 +47,7 @@ impl Config {
                 "{} (default)",
                 default.clone().folder.unwrap_or_else(|| "".to_owned())
             ))
-        );
+        )
     }
 
     /// Used by serde to skip serialization of default config for feeds
