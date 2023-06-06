@@ -166,7 +166,9 @@ And release is done! It was easy, no?
 
 ### Running the tests
 
-Automated tests can be run with `cargo test`
+Automated tests can be run with `cargo test`.
+Coverage is done thanks to [tarpaulin](https://github.com/xd009642/tarpaulin).
+Coverage is also computed during pull requests runs
 
 ## Built With
 

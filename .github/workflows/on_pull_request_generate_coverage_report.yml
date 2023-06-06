@@ -1,0 +1,21 @@
+on:
+  pull_request:
+name: Run coverage report using tarpaulin and generate cobertura-like report
+jobs:
+  test:
+    name:                       coverage
+    runs-on:                    ubuntu-latest
+    container:
+      image:                    xd009642/tarpaulin:develop-nightly
+      options:                  --security-opt seccomp=unconfined
+    steps:
+      - name:                   Checkout repository
+        uses:                   actions/checkout@v2
+
+      - name:                   Generate code coverage
+        run: |
+          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out Xml
+      - name: Use coverage report
+        uses: 5monkeys/cobertura-action@master
+        with:
+          path: cobertura.xml
