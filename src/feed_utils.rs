@@ -8,7 +8,7 @@ use tests_bin::unit_tests;
 /// 
 /// * `message_authors` a list of message autros to sanitize
 /// * `domain` a default domain string, used when domain is given
-#[unit_tests("can_sanitize_message_authors.rs")]
+#[unit_tests("feed_utils/can_sanitize_message_authors.rs")]
 pub fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec<String> {
     let fixed = message_authors
         .iter()
@@ -31,7 +31,7 @@ pub fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec
 /// 
 /// The trimmed text
 /// 
-#[unit_tests("can_trim_to_chars.rs")]
+#[unit_tests("feed_utils/can_trim_to_chars.rs")]
 fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
     let mut remaining = text;
     for cutter in characters {
@@ -44,7 +44,7 @@ fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
 ///
 /// Sanitizes email using  "good" regular expression
 /// (which I obviously don't understand anymore) able to remove unwanted characters in email address
-#[unit_tests("can_sanitize_email.rs")]
+#[unit_tests("feed_utils/can_sanitize_email.rs")]
 pub fn sanitize_email(email:&String, domain:&String)->String {
     lazy_static! {
         static ref EMAIL_AND_NAME_DETECTOR:Regex = 
