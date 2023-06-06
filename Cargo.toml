@@ -21,20 +21,26 @@ is-it-maintained-open-issues = { repository = "riduidel/rrss2imap" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
+# logging interface for Rust
 log = "0.4"
-flexi_logger = "0.19"
+# chosen logger implementation allowing easy configuration
+flexi_logger = "0.25"
 # Used for parsing command line args
 structopt = "0.3"
 # Used for reading/writing config file
 serde = "1.0"
+# macro implementation for serde easy usage
 serde_derive = "1.0"
+# allow reading and writing to json
 serde_json = "1.0"
 # Used for import/export TODO replace by quick-xml
 treexml = "0.7"
 # Used to get feed entries (and images, when it will be possible)
-atom_syndication = "0.10"
-rss = "1.9"
+atom_syndication = "0.12"
+rss = "2.0"
+# time handling
 chrono = { version = "0.4", features = ["serde"] }
+# Fixing poorly formatted dates !
 rfc822_sanitizer = "0.3"
 # A good html parser to allow generation of valid mail messages
 # kuchiki is in fact a layer over html5ever, which adds easier tree traversal/transformation
@@ -46,9 +52,10 @@ native-tls = "0.2"
 tera = "1.5"
 # Allows to easily start tera
 lazy_static = "1.4"
-base64 = "0.13"
+base64 = "0.21"
 # Seems like reqwests 0.10 do the futures jump (and I'm not ready for that)
 reqwest = { version = "0.11", features = ["blocking", "rustls-tls-native-roots"] }
+# Detects and uses SSL certificates store
 openssl-probe = "0.1"
 xhtmlchardet = "2.1"
 human-panic = "1.0"
@@ -59,9 +66,9 @@ unidecode = "0.3"
 regex = "1.5"
 custom_error = "1.8"
 async-std = "1.6"
-tokio = { version = "0.3", features = ["full"] }
+tokio = { version = "1.28", features = ["full"] }
 futures = "0.3"
-directories = "4.0"
+directories = "5.0"
 
 [dev-dependencies]
 assert_cli = "0.6"
