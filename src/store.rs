@@ -1,6 +1,7 @@
 extern crate directories;
 
 use directories::ProjectDirs;
+use tests_bin::unit_tests;
 use std::path::{PathBuf, Path};
 
 use std::fs;
@@ -24,7 +25,7 @@ custom_error!{pub UnusableStore
     JsonParseError{source:serde_json::Error} = "Can't parse JSON content of store"
 }
 
-
+#[unit_tests("store.rs")]
 /// Main application structure.
 /// This structure is read/written from/to a JSON file
 #[derive(Debug, Deserialize, Serialize)]

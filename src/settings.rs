@@ -6,7 +6,7 @@ use super::config::Config;
 
 /// Secured connection or not ?
 /// Whichever is chosen, user has to give the port as parameter
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub enum Secure {
     No(u16),
     Yes(u16),
@@ -16,22 +16,22 @@ pub enum Secure {
 /// But as code isn't expected to run on any kind of UI-aware machine (but on a headless Raspbian),
 /// I can't connect it to Keepass.
 /// So I should implement a kind of secure storage
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct Email {
     /// imap server we want to connect to
-    server: String,
+    pub server: String,
     /// username used to connect to that server
     pub user: String,
     /// password used to connect to that server.
     /// **WARNING** THis password is in **no way** encrypted, which makes rrss2imap a "not-so-secured" software
-    password: String,
+    pub password: String,
     /// secured connection state
     #[serde(default = "Email::default_secure")]
-    secure: Secure,
+    pub secure: Secure,
     #[serde(default = "Email::default_retry_max_count")]
-    retry_max_count: u8,
+    pub retry_max_count: u8,
     #[serde(default = "Email::default_retry_delay")]
-    retry_delay: u64,
+    pub retry_delay: u64,
 }
 
 /// Imap effective connection type (ie once connection has been established).

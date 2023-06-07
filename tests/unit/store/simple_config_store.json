@@ -1,0 +1,29 @@
+{
+    "settings": {
+        "email": {
+            "server": "imap_server",
+            "user": "username",
+            "password": "password",
+            "secure": {
+                "Yes": 993
+            },
+            "retry_max_count": 3,
+            "retry_delay": 1
+        },
+        "config": {
+            "email": "Sender <username@imap_server.com>",
+            "folder": "default_folder",
+            "inline_image_as_data": true
+        }
+    },
+    "feeds": [
+        {
+            "url": "https://xkcd.com/rss.xml",
+            "config": {
+                "folder": "RSS/others"
+            },
+            "last_updated": "2023-06-05T04:00:00",
+            "last_message": "https://xkcd.com/2785/"
+        }
+    ]
+}
