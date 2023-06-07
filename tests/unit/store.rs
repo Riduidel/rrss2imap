@@ -3,7 +3,7 @@ use spectral::prelude::*;
 use chrono::NaiveDateTime;
 use std::env;
 use crate::{settings::Email, config::Config};
-
+use std::fs;
 use super::*;
 
 #[test]
@@ -46,7 +46,7 @@ fn can_read_store_from_non_existing_file() {
 	config_file.push("tests");
 	config_file.push("unit");
 	config_file.push("store");
-	config_file.push("this_file_doesnt_exist.json");
+	config_file.push("can_read_store_from_non_existing_file.json");
 	assert_that!(config_file)
 		.does_not_exist();
 	let store_result = Store::load(&config_file);
@@ -71,4 +71,52 @@ fn can_read_store_from_non_existing_file() {
 	});
 	assert_that!(store.feeds)
 	.is_equal_to(vec![])
+}
+
+#[test]
+fn bugfix_82_export_is_broken() {
+	// Given
+	let mut store_path = env::current_dir().unwrap();
+	store_path.push("tests");
+	store_path.push("unit");
+	store_path.push("store");
+	store_path.push("bugfix_82_export_is_broken.json");
+	let mut store = Store {
+		settings: Settings { 
+			do_not_save: false, 
+			email: Email {
+				server: "imap_server".to_string(),
+				user: "username".to_string(),
+				password: "password".to_string(),
+				secure: crate::settings::Secure::Yes(993),
+				retry_max_count: 3,
+				retry_delay: 1
+			}, 
+			config: Config {
+				email: Some("Sender <username@imap_server.com>".to_string()),
+				folder: Some("default_folder".to_string()),
+				from: None,
+				inline_image_as_data: true
+			}
+		},
+		feeds: vec![],
+		dirty: true,
+		path: store_path
+	};
+	let mut export_path = env::current_dir().unwrap();
+	export_path.push("tests");
+	export_path.push("unit");
+	export_path.push("store");
+	export_path.push("export.opml");
+	// Finally, add one feed to the store
+	store.add_feed(Feed::from_vec(vec!["https://xkcd.com/rss.xml".to_string()]));
+	// When
+	store.export(Some(export_path.clone()));
+	// Then
+	assert_that!(export_path)
+		.is_a_file();
+	// Read file content to a string
+	let opml_content = fs::read_to_string(export_path).unwrap();
+	assert_that!(opml_content)
+		.contains("https://xkcd.com/rss.xml")
 }
