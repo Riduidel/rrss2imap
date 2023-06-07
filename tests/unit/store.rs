@@ -1,6 +1,6 @@
 extern crate spectral;
 use spectral::prelude::*;
-use chrono::NaiveDateTime;
+
 use std::env;
 use crate::{settings::Email, config::Config};
 
