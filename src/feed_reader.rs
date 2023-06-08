@@ -261,7 +261,9 @@ impl RssReader {
                 let last_pub_date = feed.last_build_date().unwrap().to_owned();
                 RssReader::try_hard_to_parse(last_pub_date)
             } else {
-                Ok(DateTime::<FixedOffset>::from_utc(Feed::at_epoch(), FixedOffset::east(0)))
+                Ok(DateTime::<FixedOffset>::from_utc(
+                    Feed::at_epoch(), 
+                    FixedOffset::east_opt(0).unwrap()))
             }
         }
     }

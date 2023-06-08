@@ -28,7 +28,7 @@ pub struct Feed {
 impl Feed {
     /// Creates a new naivedatetime with a default value (which is, to my mind) a sensible default for computers
     pub fn at_epoch() -> NaiveDateTime {
-        NaiveDateTime::from_timestamp(0, 0)
+        NaiveDateTime::from_timestamp_opt(0, 0).unwrap()
     }
 
     // Convert the parameters vec into a valid feed (if possible)

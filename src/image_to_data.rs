@@ -3,6 +3,8 @@ use super::settings::*;
 use kuchiki::*;
 
 
+use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
+
 
 
 pub fn transform(document: NodeRef, _settings: &Settings) -> NodeRef {
@@ -22,7 +24,7 @@ pub fn transform(document: NodeRef, _settings: &Settings) -> NodeRef {
                     let mut image: Vec<u8> = vec![];
                     response.copy_to(&mut image).unwrap();
                     let image_bytes = image.as_slice();
-                    let encoded = base64::encode(image_bytes);
+                    let encoded = general_purpose::STANDARD_NO_PAD.encode(image_bytes);
                     let image_mime_type = tree_magic::from_u8(image_bytes);
                     attributes.insert(
                         "src",
