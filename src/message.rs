@@ -6,8 +6,6 @@ use super::settings::*;
 use tera::Context;
 use tera::Tera;
 
-use kuchiki::traits::*;
-
 use emailmessage::{header, Message as Email, SinglePart};
 use emailmessage::header::EmailDate;
 use emailmessage::Mailbox;
@@ -130,18 +128,14 @@ impl Message {
     /// This should allow
     /// * image transformation into base64 when needed
     ///
-    pub fn get_processed_content(content:&String, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
+    pub fn get_processed_content(html_content:&String, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
         if feed.config.inline_image_as_data || settings.config.inline_image_as_data {
-            let mut document = kuchiki::parse_html().one(content.clone());
-            // So, take content, pass it through html5ever (thanks to select, and transform each image !)
-            document = image_to_data::transform(document, settings);
-            let mut bytes = vec![];
-            if document.serialize(&mut bytes).is_err() {
-                return Err(UnprocessableMessage::CantWriteTransformedMessage);
+            match image_to_data::transform(html_content) {
+                Ok(transformed_html_content) => Ok(transformed_html_content),
+                Err(_) => Err(UnprocessableMessage::CantWriteTransformedMessage)
             }
-            Ok(String::from_utf8(bytes).unwrap())
         } else {
-            Ok(content.clone())
+            Ok(html_content.clone())
         }
     }
 
