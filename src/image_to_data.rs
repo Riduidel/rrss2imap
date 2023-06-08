@@ -3,7 +3,7 @@ use super::settings::*;
 use kuchiki::*;
 
 
-use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
+use base64::{Engine as _, engine::{general_purpose}};
 
 
 
