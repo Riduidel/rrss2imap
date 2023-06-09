@@ -266,9 +266,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Configure logger
     Logger::try_with_env_or_str(
         match opt.verbose {
-            0 => "warn",
-            1 => "warn, rrss2imap = info",
-            2 => "warn, rrss2imap = info",
+            0 => "warn, rrss2imap = info",
+            1 => "warn, rrss2imap = debug",
+            2 => "warn, rrss2imap = trace",
             _ => "trace", })
         .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e))
         .format(match opt.verbose {
