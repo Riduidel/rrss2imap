@@ -132,7 +132,7 @@ extern crate tera;
 extern crate lazy_static;
 #[macro_use]
 extern crate human_panic;
-extern crate kuchiki;
+extern crate lol_html;
 extern crate imap;
 extern crate native_tls;
 extern crate base64;
