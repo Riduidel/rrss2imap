@@ -1,4 +1,4 @@
-use super::settings::*;
+
 
 use base64::engine::*;
 use microkv::MicroKV;
@@ -17,7 +17,8 @@ pub fn transform(document: &String) -> Result<String, RewritingError> {
             .with_pwd_clear("my_password_123"));
     }
 
-    let output = rewrite_str(document,
+    
+    rewrite_str(document,
         RewriteStrSettings {
             element_content_handlers: vec![
         // Rewrite images having src where src doesn't start with data
@@ -55,6 +56,5 @@ pub fn transform(document: &String) -> Result<String, RewritingError> {
         })
     ],
             ..RewriteStrSettings::default()
-        });
-    output
+        })
 }
