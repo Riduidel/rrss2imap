@@ -1,10 +1,9 @@
 use chrono::NaiveDateTime;
+use chrono::format::format;
 
 use super::feed::Feed;
 use super::image_to_data;
 use super::settings::*;
-use tera::Context;
-use tera::Tera;
 
 use emailmessage::{header, Message as Email, SinglePart};
 use emailmessage::header::EmailDate;
@@ -17,23 +16,6 @@ custom_error!{pub UnprocessableMessage
     CantPutFirstAuthorInMessage { value:String } = "Unable to parse first author {value}.
     Please consider adding in feed config the \"from\": ... field",
     CantWriteTransformedMessage = "Can't re-write transformed message after image Base64'ing"
-}
-
-
-lazy_static! {
-    pub static ref TERA: Tera = {
-        let message = include_str!("../templates/message.html");
-        let mut tera = match Tera::new("templates/**/*") {
-            Ok(t) => t,
-            Err(e) => {
-                println!("Can't compile tera template: {}", e);
-                ::std::process::exit(1);
-            }
-        };
-        tera.add_raw_template("message.html", message).expect("There should be a message.html template");
-        tera.autoescape_on(vec![]);
-        tera
-    };
 }
 
 ///
@@ -74,7 +56,7 @@ impl Message {
     }
 
     fn build_message(&self, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
-        let content = self.extract_content(feed, settings)?;
+        let content = self.extract_content(feed, settings);
         debug!("===========================\nCreating message content\n{}\n===========================", content);
         let date:Result<EmailDate, _> = self.date_text().parse();
         if date.is_err() {
@@ -118,9 +100,39 @@ impl Message {
 
     /// Makes a valid HTML file out of the given Item.
     /// This method provides all the transformation that should happen
-    fn extract_content(&self, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
-        Ok(TERA.render("message.html", &self.build_context(feed, settings)?)
-            .unwrap())
+    fn extract_content(&self, feed: &Feed, settings: &Settings) -> String {
+        let style = include_str!("message.css");
+        let title = format!("<h1 class=\"header\"><a href=\"{}\">{}</a></h1>",
+            self.id,
+            self.title);
+        let body = format!("<div id=\"body\">{}</div>", self.content);
+        let links = self.links.iter()
+                    .map(|l| format!("<p class=\"footer\">URL: <a href=\"{}\">{}</a></p>", l, l))
+                    .collect::<Vec<String>>()
+                    .join("\n")
+                    ;
+        format!("
+        <html>
+        <head>
+            <meta http-equiv=\"Content-Type\" content=\"text/html\">
+            <style>
+                {}
+            </style>
+        </head>
+    
+        <body>
+            <div id=\"entry\">
+                {}
+                {}
+                {}
+            </div>
+        </body>
+    </html>
+        ",
+            style,
+            title,
+            body,
+            links)
     }
 
     ///
@@ -137,18 +149,6 @@ impl Message {
         } else {
             Ok(html_content.clone())
         }
-    }
-
-    fn build_context(&self, feed: &Feed, settings: &Settings) -> Result<Context, UnprocessableMessage> {
-        let mut context = Context::new();
-        context.insert("feed_entry", &self.content);
-        context.insert("links", &self.links);
-        context.insert("id", &self.id);
-        context.insert("title", &self.title);
-        context.insert("from", &self.authors);
-        context.insert("to", &feed.config.get_email(&settings.config));
-        context.insert("date", &self.date_text());
-        Ok(context)
     }
 
     fn date_text(&self) -> String {

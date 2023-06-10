@@ -127,7 +127,6 @@ extern crate treexml;
 extern crate chrono;
 extern crate rfc822_sanitizer;
 extern crate unidecode;
-extern crate tera;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]

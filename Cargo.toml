@@ -45,8 +45,6 @@ rfc822_sanitizer = "0.3"
 # And an imap connector, obviously
 imap = "2.3"
 native-tls = "0.2"
-# Used to generate html text messages from initial entries
-tera = { version = "1.5", default-features = false }
 # Allows to easily start tera
 lazy_static = "1.4"
 lol_html = "1.0"
