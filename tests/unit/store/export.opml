@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.0">
+  <head>
+    <title>rrss2imap OPML Export</title>
+  </head>
+  <body>
+    <outline title="default_folder" text="default_folder">
+      <outline text="https://xkcd.com/rss.xml" xmlUrl="https://xkcd.com/rss.xml" type="rss" />
+    </outline>
+  </body>
+</opml>

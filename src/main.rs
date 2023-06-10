@@ -139,7 +139,6 @@ extern crate atom_syndication;
 extern crate rss;
 extern crate xhtmlchardet;
 extern crate url;
-extern crate emailmessage;
 extern crate openssl_probe;
 extern crate regex;
 extern crate custom_error;

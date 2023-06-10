@@ -1,14 +1,9 @@
 use chrono::NaiveDateTime;
-use chrono::format::format;
 
 use super::feed::Feed;
 use super::image_to_data;
 use super::settings::*;
-
-use emailmessage::{header, Message as Email, SinglePart};
-use emailmessage::header::EmailDate;
-use emailmessage::Mailbox;
-
+use mail_builder::MessageBuilder;
 use custom_error::custom_error;
 
 custom_error!{pub UnprocessableMessage
@@ -55,47 +50,34 @@ impl Message {
         }
     }
 
-    fn build_message(&self, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
-        let content = self.extract_content(feed, settings);
-        debug!("===========================\nCreating message content\n{}\n===========================", content);
-        let date:Result<EmailDate, _> = self.date_text().parse();
-        if date.is_err() {
-            return Err(UnprocessableMessage::CantPutDateInMessage { value : self.date_text() });
-        }
-        let to_addr = settings.config.email.as_ref().unwrap_or(&settings.email.user);
-        let mut builder = Email::builder()
-            .subject(&*self.title)
-            .date(date.unwrap())
-            .to(to_addr.parse().unwrap())
-            ;
-
+    fn build_from(&self, feed:&Feed, settings:&Settings)->String {
         match &feed.config.from {
-            Some(from) => {
-                builder = builder.from(from.parse().unwrap());
-            }
+            Some(from) =>from.to_owned(),
             None => {
                 if self.authors.is_empty() {
-                    builder = builder.from("what@what.com".parse().unwrap());
+                    "what@what.com".to_owned()
                 } else {
-                    let first_author = &self.authors[0];
-                    let parsed_first_author:Result<Mailbox, _> = first_author.parse();
-                    if parsed_first_author.is_err() {
-                        return Err(UnprocessableMessage::CantPutFirstAuthorInMessage { value : first_author.clone() });
-                    }
-                    builder = builder.from(parsed_first_author.unwrap());
+                    self.authors[0].to_owned()
                 }
             }
         }
+    }
 
-        let email: Email<SinglePart<String>> = builder.mime_body(
-            SinglePart::builder()
-                .header(header::ContentType(
-                    "text/html; charset=utf8".parse().unwrap(),
-                ))
-                .header(header::ContentTransferEncoding::QuotedPrintable)
-                .body(content),
-        );
-        Ok(email.to_string())
+    fn build_message(&self, feed: &Feed, settings: &Settings) -> Result<String, UnprocessableMessage> {
+        let content = self.extract_content(feed, settings);
+        debug!("===========================\nCreating message content\n{}\n===========================", content);
+        let from = self.build_from(feed, settings);
+        let date = self.date_text();
+        let to_addr = settings.config.email.as_ref().unwrap_or(&settings.email.user);
+        let mut email = MessageBuilder::new()
+            .from(from.as_str())
+            .to(to_addr.as_str())
+            .subject(self.title.as_str())
+            .html_body(content.as_str())
+            .date(self.last_date.timestamp())
+            .write_to_string()
+            .unwrap();
+        Ok(email)
     }
 
     /// Makes a valid HTML file out of the given Item.
