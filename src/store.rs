@@ -9,10 +9,6 @@ use std::fs::File;
 use std::io::Read;
 
 
-
-use futures::stream::StreamExt;
-use futures::stream::futures_unordered::FuturesUnordered;
-
 use super::export;
 use super::feed::Feed;
 use super::import;
@@ -172,18 +168,14 @@ impl Store {
     /// Run all rss to imap transformation
     /// Each feed is read and immediatly written in this thread.
     /// This should be rewritten to allow optimization/parallelism
-    pub async fn run(&mut self) {
+    pub fn run(&mut self) {
         self.dirty = true;
-        let client = reqwest::blocking::Client::builder()
-            .build().unwrap();
         let feeds_length = self.feeds.len();
         // Initialize mail server before processing feeds
         self.feeds = self.feeds
             .iter().enumerate()
-            .map(|element| element.1.read(element.0, &feeds_length, &client, &self.settings))
-            .collect::<FuturesUnordered<_>>()
-            .collect::<Vec<Feed>>()
-            .await;
+            .map(|element| element.1.read(element.0, &feeds_length, &self.settings))
+            .collect::<Vec<Feed>>();
     }
 
     /// Prints all the feeds to stdout.

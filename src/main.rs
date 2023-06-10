@@ -137,18 +137,13 @@ extern crate imap;
 extern crate native_tls;
 extern crate base64;
 extern crate atom_syndication;
-extern crate reqwest;
 extern crate rss;
 extern crate xhtmlchardet;
 extern crate url;
-extern crate tree_magic;
 extern crate emailmessage;
 extern crate openssl_probe;
 extern crate regex;
 extern crate custom_error;
-extern crate async_std;
-extern crate tokio;
-extern crate futures;
 use flexi_logger::Logger;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -256,8 +251,7 @@ enum Command {
 }
 
 /// Main function simply load the RRSS2IMAP struct from the command-line arguments
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+pub fn main() -> Result<(), Box<dyn Error>> {
     if !cfg!(debug_assertions) {
         setup_panic!();
     }
@@ -297,14 +291,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                 Command::Reset => store.reset(),
 
-                Command::Run => {
-                    let handle = tokio::spawn(async move {
-                        store.run().await
-                    });
-
-                    // Wait for the spawned task to finish
-                    let _res = handle.await;
-                }
+                Command::Run => store.run(),
 
                 Command::Export { output } => store.export(output),
                 Command::Import { input } => store.import(input),

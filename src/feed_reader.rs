@@ -168,7 +168,7 @@ impl AtomReader {
 
 impl Reader<AtomEntry, AtomFeed> for AtomReader {
     fn extract(&self, entry: &AtomEntry, source: &AtomFeed) -> Result<Message, UnparseableFeed> {
-        trace!("Reading atom entry {}", entry.id());
+        info!("Reading atom entry {} from {:?}", entry.id(), entry.links());
         let authors = AtomReader::extract_authors_from_atom(entry, source);
         let last_date = entry
             .updated()
@@ -272,7 +272,7 @@ impl RssReader {
 
 impl Reader<RssItem, RssChannel> for RssReader {
     fn extract(&self, entry: &RssItem, source: &RssChannel) -> Result<Message, UnparseableFeed> {
-        trace!("Reading entry {:?}", entry.guid());
+        info!("Reading RSS entry {:?} from {:?}", entry.guid(), entry.link());
         let authors = RssReader::extract_authors_from_rss(entry, source);
         let content = entry
             .content()

@@ -46,27 +46,23 @@ rfc822_sanitizer = "0.3"
 imap = "2.3"
 native-tls = "0.2"
 # Used to generate html text messages from initial entries
-tera = "1.5"
+tera = { version = "1.5", default-features = false }
 # Allows to easily start tera
 lazy_static = "1.4"
 lol_html = "1.0"
-microkv = "0.2"
 base64 = "0.21"
-# Seems like reqwests 0.10 do the futures jump (and I'm not ready for that)
-reqwest = { version = "0.11", features = ["blocking", "rustls-tls-native-roots"] }
+# A lightweight http client (with no default support for async/await)
+ureq = "2.6"
 # Detects and uses SSL certificates store
 openssl-probe = "0.1"
 xhtmlchardet = "2.1"
 human-panic = "1.0"
 url = "2.1"
-tree_magic = "0.2"
+tree_magic_mini = "3.0"
 emailmessage = "0.2"
 unidecode = "0.3"
 regex = "1.5"
 custom_error = "1.8"
-async-std = "1.6"
-tokio = { version = "1.28", features = ["full"] }
-futures = "0.3"
 directories = "5.0"
 tests_bin = "1.0"
 

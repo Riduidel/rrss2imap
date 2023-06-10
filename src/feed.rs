@@ -6,7 +6,6 @@ use super::config::*;
 use super::feed_reader::*;
 use super::settings::*;
 use super::syndication;
-use reqwest::blocking::Client;
 
 #[unit_tests("feed.rs")]
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -90,10 +89,10 @@ impl Feed {
         format!("{} {}", self.url, self.config.clone().to_string(config))
     }
 
-    pub async fn read(&self, index:usize, count:&usize, client:&Client, settings: &Settings) -> Feed {
+    pub fn read(&self, index:usize, count:&usize, settings: &Settings) -> Feed {
         info!("Reading feed {}/{} from {}", index+1, count, self.url);
-        match client.get(&self.url).send() {
-            Ok(response) => match response.text() {
+        match ureq::get(&self.url).call() {
+            Ok(response) => match response.into_string() {
                 Ok(text) => match text.parse::<syndication::Feed>() {
                     Ok(parsed) => {
                         return match parsed {
