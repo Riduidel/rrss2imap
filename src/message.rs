@@ -50,7 +50,7 @@ impl Message {
         }
     }
 
-    fn build_from(&self, feed:&Feed, settings:&Settings)->String {
+    fn build_from(&self, feed:&Feed, _settings:&Settings)->String {
         match &feed.config.from {
             Some(from) =>from.to_owned(),
             None => {
@@ -67,9 +67,9 @@ impl Message {
         let content = self.extract_content(feed, settings);
         debug!("===========================\nCreating message content\n{}\n===========================", content);
         let from = self.build_from(feed, settings);
-        let date = self.date_text();
+        let _date = self.date_text();
         let to_addr = settings.config.email.as_ref().unwrap_or(&settings.email.user);
-        let mut email = MessageBuilder::new()
+        let email = MessageBuilder::new()
             .from(from.as_str())
             .to(to_addr.as_str())
             .subject(self.title.as_str())
@@ -82,7 +82,7 @@ impl Message {
 
     /// Makes a valid HTML file out of the given Item.
     /// This method provides all the transformation that should happen
-    fn extract_content(&self, feed: &Feed, settings: &Settings) -> String {
+    fn extract_content(&self, _feed: &Feed, _settings: &Settings) -> String {
         let style = include_str!("message.css");
         let title = format!("<h1 class=\"header\"><a href=\"{}\">{}</a></h1>",
             self.id,
