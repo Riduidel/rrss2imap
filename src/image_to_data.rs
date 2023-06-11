@@ -6,7 +6,8 @@ use tests_bin::unit_tests;
 
 #[unit_tests("image_to_data.rs")]
 pub fn transform(document: &String) -> Result<String, RewritingError> {
-    let output = rewrite_str(document,
+    
+    rewrite_str(document,
         RewriteStrSettings {
             element_content_handlers: vec![
         // Rewrite images having src where src doesn't start with data
@@ -36,6 +37,5 @@ pub fn transform(document: &String) -> Result<String, RewritingError> {
         })
     ],
             ..RewriteStrSettings::default()
-        });
-    output
+        })
 }
