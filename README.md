@@ -151,6 +151,7 @@ To perform a release, you'll also need
 
 ##### Releasing
 
+1. Install cargo release (`cargo install cargo-release`) and git-journal (`cargo install git-journal`)
 1. Run `cargo release`. This will build a version of the code, push it onto crates/io and tag the repository.
 Thanks to GitHub Actions (and more specifically the `on_tag.yml` one), once the tag is pushed to GitHub, a release is created.
 1. Publish the release. This will trigger the `on_release_created.yml` which will build executables for the target platforms and attach them to the release.
