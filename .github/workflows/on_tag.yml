@@ -7,16 +7,13 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
-  Make_GitHub_Release:
-    name: Create Release
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Release
-        uses: actions/create-release@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: "true"
-          prerelease: "false"
+    - uses: actions/checkout@v3
+    - name: Create a Release
+      uses: elgohr/Github-Release-Action@v4
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      with:
+        title: ${{ github.ref }}
