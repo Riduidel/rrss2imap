@@ -133,13 +133,11 @@ extern crate lazy_static;
 extern crate human_panic;
 extern crate lol_html;
 extern crate imap;
-extern crate native_tls;
 extern crate base64;
 extern crate atom_syndication;
 extern crate rss;
 extern crate xhtmlchardet;
 extern crate url;
-extern crate openssl_probe;
 extern crate regex;
 extern crate custom_error;
 use flexi_logger::Logger;
@@ -270,8 +268,6 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             _ => flexi_logger::colored_with_thread, })
         .start()
         .unwrap_or_else(|e| panic!("Logger initialization failed with {}", e));
-
-    openssl_probe::init_ssl_cert_env_vars();
 
     let store_path = store::find_store();
     let store_result = store::Store::load(&store_path);

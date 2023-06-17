@@ -1499,7 +1499,6 @@ dependencies = [
  "lol_html",
  "mail-builder",
  "native-tls",
- "openssl-probe",
  "regex",
  "rfc822_sanitizer",
  "rss",
@@ -1574,6 +1573,27 @@ dependencies = [
  "ring",
  "sct",
  "webpki",
+]
+
+[[package]]
+name = "rustls-native-certs"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0167bac7a9f490495f3c33013e7722b53cb087ecbe082fb0c6387c96f634ea50"
+dependencies = [
+ "openssl-probe",
+ "rustls-pemfile",
+ "schannel",
+ "security-framework",
+]
+
+[[package]]
+name = "rustls-pemfile"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d194b56d58803a43635bdc398cd17e383d6f71f9182b9a192c127ca42494a59b"
+dependencies = [
+ "base64 0.21.2",
 ]
 
 [[package]]
@@ -2014,8 +2034,10 @@ dependencies = [
  "base64 0.13.1",
  "flate2",
  "log",
+ "native-tls",
  "once_cell",
  "rustls",
+ "rustls-native-certs",
  "url",
  "webpki",
  "webpki-roots",
