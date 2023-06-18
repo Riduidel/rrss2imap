@@ -54,9 +54,7 @@ lazy_static = "1.4"
 lol_html = "1.0"
 base64 = "0.21"
 # A lightweight http client (with no default support for async/await)
-ureq = "2.6"
-# Detects and uses SSL certificates store
-openssl-probe = "0.1"
+ureq = {version = "2.6", features = ["native-tls", "native-certs"]}
 xhtmlchardet = "2.1"
 human-panic = "1.0"
 url = "2.1"
