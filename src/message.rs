@@ -72,7 +72,7 @@ impl Message {
         let email = MessageBuilder::new()
             .from(from.as_str())
             .to(to_addr.as_str())
-            .subject(self.title.as_str())
+            .subject(str::replace(self.title.as_str(), "\n", ""))
             .html_body(content.as_str())
             .date(self.last_date.timestamp())
             .write_to_string()

@@ -15,7 +15,7 @@ pub fn transform(document: &String) -> Result<String, RewritingError> {
             let src:String = el
                 .get_attribute("src")
                 .unwrap();
-            info!("processing image at url {}", &src);
+            debug!("processing image at url {}", &src);
         
             if !src.starts_with("data") {
                 // Now it's time to rewrite!
