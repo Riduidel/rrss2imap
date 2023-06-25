@@ -18,7 +18,7 @@ custom_error!{pub UnprocessableMessage
 /// This structure serves as a common interface for Item/Entry
 pub struct Message {
     /// List of message authors
-    pub authors: Vec<String>,
+    pub authors: Vec<(String, String)>,
     /// Message content. Image extraction should happen BEFORE that storage.
     pub content: String,
     /// Message id
@@ -50,12 +50,12 @@ impl Message {
         }
     }
 
-    fn build_from(&self, feed:&Feed, _settings:&Settings)->String {
+    fn build_from(&self, feed:&Feed, _settings:&Settings)->(String, String) {
         match &feed.config.from {
-            Some(from) =>from.to_owned(),
+            Some(from) =>(from.to_owned(), from.to_owned()),
             None => {
                 if self.authors.is_empty() {
-                    "what@what.com".to_owned()
+                    ("Unkown author".to_owned(), "what@what.com".to_owned())
                 } else {
                     self.authors[0].to_owned()
                 }
@@ -70,7 +70,7 @@ impl Message {
         let _date = self.date_text();
         let to_addr = settings.config.email.as_ref().unwrap_or(&settings.email.user);
         let email = MessageBuilder::new()
-            .from(from.as_str())
+            .from(from)
             .to(to_addr.as_str())
             .subject(str::replace(self.title.as_str(), "\n", ""))
             .html_body(content.as_str())

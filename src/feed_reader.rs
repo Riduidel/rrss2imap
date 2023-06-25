@@ -135,7 +135,7 @@ pub trait Reader<EntryType, FeedType> {
 pub struct AtomReader {}
 
 impl AtomReader {
-    fn extract_authors_from_atom(entry: &AtomEntry, feed: &AtomFeed) -> Vec<String> {
+    fn extract_authors_from_atom(entry: &AtomEntry, feed: &AtomFeed) -> Vec<(String, String)> {
         let domain = AtomReader::find_atom_domain(feed);
         // This is where we also transform author names into urls in order
         // to have valid email addresses everywhere
@@ -207,7 +207,7 @@ impl Reader<AtomEntry, AtomFeed> for AtomReader {
 pub struct RssReader {}
 
 impl RssReader {
-    fn extract_authors_from_rss(entry: &RssItem, feed: &RssChannel) -> Vec<String> {
+    fn extract_authors_from_rss(entry: &RssItem, feed: &RssChannel) -> Vec<(String, String)> {
         let domain = RssReader::find_rss_domain(feed);
         // This is where we also transform author names into urls in order
         // to have valid email addresses everywhere

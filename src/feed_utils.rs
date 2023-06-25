@@ -9,7 +9,7 @@ use tests_bin::unit_tests;
 /// * `message_authors` a list of message autros to sanitize
 /// * `domain` a default domain string, used when domain is given
 #[unit_tests("feed_utils/can_sanitize_message_authors.rs")]
-pub fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec<String> {
+pub fn sanitize_message_authors(message_authors:Vec<String>, domain:String)->Vec<(String, String)> {
     let fixed = message_authors
         .iter()
         .map(|author| {
@@ -45,7 +45,7 @@ fn trim_to_chars(text:&str, characters:Vec<&str>)->String {
 /// Sanitizes email using  "good" regular expression
 /// (which I obviously don't understand anymore) able to remove unwanted characters in email address
 #[unit_tests("feed_utils/can_sanitize_email.rs")]
-pub fn sanitize_email(email:&String, domain:&String)->String {
+pub fn sanitize_email(email:&String, domain:&String)->(String, String) {
     lazy_static! {
         static ref EMAIL_AND_NAME_DETECTOR:Regex = 
             Regex::new("([[:alpha:]_%\\+\\-\\.]+@[[:alpha:]_%\\+\\-]+\\.[[:alpha:]_%\\+\\-]+{1,}) \\(([^\\)]*)\\)").unwrap();
@@ -56,7 +56,10 @@ pub fn sanitize_email(email:&String, domain:&String)->String {
     }
     if EMAIL_AND_NAME_DETECTOR.is_match(email) {
         let captures = EMAIL_AND_NAME_DETECTOR.captures(email).unwrap();
-        format!("{} <{}>", captures.get(2).unwrap().as_str(), captures.get(1).unwrap().as_str())
+        // Maybe we could rewrite it in a better way
+        let name:String = captures.get(2).unwrap().as_str().to_string();
+        let email:String = captures.get(1).unwrap().as_str().to_string();
+        (name, email)
     } else {
         // When no email is provided, use domain name
         let email = if email.is_empty() {
@@ -70,6 +73,6 @@ pub fn sanitize_email(email:&String, domain:&String)->String {
         let tuple = (trimmed,
                     BAD_CHARACTER_REMOVER.replace_all(&lowercased, "_")
                 );
-        format!("{} <{}@{}>", tuple.0, tuple.1, domain)
+        (tuple.0, format!("{}@{}", tuple.1, domain))
     }
 }
