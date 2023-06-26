@@ -16,6 +16,7 @@ custom_error!{pub UnprocessableMessage
 ///
 /// Structure for storing message data prior to having these messages written to IMAP.
 /// This structure serves as a common interface for Item/Entry
+#[derive(Clone)]
 pub struct Message {
     /// List of message authors
     pub authors: Vec<(String, String)>,

@@ -174,7 +174,8 @@ impl Store {
         // Initialize mail server before processing feeds
         self.feeds = self.feeds
             .iter().enumerate()
-            .map(|element| element.1.read(element.0, &feeds_length, &self.settings))
+            .map(|element| (element.1, element.1.read(element.0, &feeds_length, )))
+            .map(|(feed, messages)| feed.write_new_messages(&self.settings, messages))
             .collect::<Vec<Feed>>();
     }
 
