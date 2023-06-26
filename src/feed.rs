@@ -97,22 +97,27 @@ impl Feed {
         info!("Reading feed {}/{} from {}", index+1, count, self.url);
         match ureq::get(&self.url).call() {
             Ok(response) => match response.into_string() {
-                Ok(text) => match text.parse::<syndication::Feed>() {
-                    Ok(parsed) => {
-                        return match parsed {
-                            syndication::Feed::Atom(atom_feed) => {
-                                AtomReader {}.read(self, &atom_feed)
-                            }
-                            syndication::Feed::RSS(rss_feed) => {
-                                RssReader {}.read(self, &rss_feed)
-                            }
-                        }
-                    }
-                    Err(e) => error!("Content ar {} is neither Atom, nor RSS {}.\nTODO check real content type to help user.", &self.url, e),
-                },
+                Ok(text) => return self.read_response_text(text),
                 Err(e) => error!("There is no text at {} due to error {}", &self.url, e),
             },
             Err(e) => error!("Unable to get {} due to {}.\nTODO Add better http response analysis !", &self.url, e),
+        }
+        vec![]
+    }
+
+    pub fn read_response_text(&self, text:String) -> Vec<Message> {
+        match text.parse::<syndication::Feed>() {
+            Ok(parsed) => {
+                return match parsed {
+                    syndication::Feed::Atom(atom_feed) => {
+                        AtomReader {}.read(self, &atom_feed)
+                    }
+                    syndication::Feed::RSS(rss_feed) => {
+                        RssReader {}.read(self, &rss_feed)
+                    }
+                }
+            }
+            Err(e) => error!("Content ar {} is neither Atom, nor RSS {}.\nTODO check real content type to help user.", &self.url, e),
         }
         vec![]
     }

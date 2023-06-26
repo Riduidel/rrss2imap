@@ -73,3 +73,30 @@ fn can_build_feed_from_url_email_and_folder() {
 			last_message: None
 		})
 }
+
+/// Makes sure we can parse the feed given in https://validator.w3.org/feed/docs/atom.html
+#[test]
+fn can_read_an_atom_feed() {
+	let feed = Feed::from_vec(vec!["a@b.c".to_string()]);
+	let messages = feed.read_response_text(include_str!("example.atom").to_string());
+	assert_that!(messages)
+		.has_length(1)
+		;
+	let first = &messages[0];
+	assert_that!(first.content).is_equal_to("Some text.".to_string());
+
+}
+
+
+/// Makes sure we can parse the feed given in https://en.wikipedia.org/wiki/RSS?useskin=vector#Example
+#[test]
+fn can_read_a_rss_feed() {
+	let feed = Feed::from_vec(vec!["a@b.c".to_string()]);
+	let messages = feed.read_response_text(include_str!("example.rss").to_string());
+	assert_that!(messages)
+		.has_length(1)
+		;
+	let first = &messages[0];
+	assert_that!(first.content).is_equal_to("Here is some text containing an interesting description.".to_string());
+
+}
