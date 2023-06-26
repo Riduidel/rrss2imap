@@ -19,7 +19,7 @@ pub trait Reader<EntryType, FeedType> {
 
     fn extract_messages(&self, source:&FeedType)->Vec<Result<Message,UnparseableFeed>>;
     
-    fn read<'lifetime>(&self, feed:&'lifetime Feed, source:&FeedType)->Vec<Message> {
+    fn read(&self, feed:&Feed, source:&FeedType)->Vec<Message> {
         debug!("reading feed {}", &feed.url);
         let feed_date = self.read_feed_date(source);
         info!(
