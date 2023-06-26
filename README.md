@@ -7,10 +7,10 @@ rrss2imap is a Rust reimplementation of the classical Python script [rss2imap](h
 
 Goals of this project include
 
-* Having a reasonably performant implementation of rss2imap
-* Learn Rust
-* Explore parallel mechanism
-* Maybe provide some kind of image embedding (DONE) with cache
+* ✅ Having a reasonably performant implementation of rss2imap (by performant I mean able to run without problem on my Raspberry)
+* ✅ Learn Rust
+* ✅ Explore parallel mechanism (thanks Rayon)
+* ✅ Maybe provide some kind of image embedding (DONE)
 
 ## Getting Started
 
