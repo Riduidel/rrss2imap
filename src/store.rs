@@ -14,6 +14,8 @@ use super::feed::Feed;
 use super::import;
 use super::settings::Settings;
 
+use rayon::prelude::*;
+
 use custom_error::custom_error;
 
 custom_error!{pub UnusableStore
@@ -173,8 +175,9 @@ impl Store {
         let feeds_length = self.feeds.len();
         // Initialize mail server before processing feeds
         self.feeds = self.feeds
-            .iter().enumerate()
-            .map(|element| element.1.read(element.0, &feeds_length, &self.settings))
+            .par_iter().enumerate()
+            .map(|element| (element.1, element.1.read(element.0, &feeds_length, )))
+            .map(|(feed, messages)| feed.write_new_messages(&self.settings, messages))
             .collect::<Vec<Feed>>();
     }
 

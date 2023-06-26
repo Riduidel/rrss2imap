@@ -65,6 +65,7 @@ regex = "1.5"
 custom_error = "1.8"
 directories = "5.0"
 tests_bin = "1.0"
+rayon = "1.7"
 
 [dev-dependencies]
 assert_cli = "0.6"

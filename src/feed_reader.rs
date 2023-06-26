@@ -2,7 +2,6 @@ use chrono::{DateTime, Utc, FixedOffset, NaiveDateTime};
 
 use super::feed_errors::*;
 use super::message::*;
-use super::settings::*;
 use atom_syndication::Entry as AtomEntry;
 use atom_syndication::Feed as AtomFeed;
 use rss::Channel as RssChannel;
@@ -15,100 +14,12 @@ use super::feed_utils::*;
 /// The reader trait allow reading data from a web source.
 /// It is supposed to be derived for Rss and Atom, but it's only a try currently ...
 pub trait Reader<EntryType, FeedType> {
-    fn process_message(&self, feed:&Feed, settings:&Settings, message:&Message)->Message {
-        Message {
-            authors: message.authors.clone(),
-            content: Message::get_processed_content(&message.content, feed, settings).unwrap(),
-            id: message.id.clone(),
-            last_date: message.last_date,
-            links: message.links.clone(),
-            title: message.title.clone(),
-        }
-    }
-
-    /// Find in the given input feed the new messages
-    /// A message is considered new if it has a date which is nearer than feed last processed date
-    /// or (because RSS and Atom feeds may not have dates) if its id is not yet the id of the last
-    /// processed feed
-    fn find_new_messages(&self, feed:&Feed, sorted_messages:&[&Message])->(usize, usize, bool) {
-        let head:usize = 0;
-        let mut tail:usize = 0;
-        let mut found = false;
-        // Now do the filter
-        // This part is not so easy.
-        // we will first iterate over the various items and for each, check that
-        // 1 - the message id is not the last read message one
-        // 2 - if messages have dates, the message date is more recent than the last one
-        for (position, message) in sorted_messages.iter().enumerate() {
-            if !found {
-                match &feed.last_message {
-                    Some(id) => if id==&message.id {
-                        tail = position; 
-                        found = true;
-                        break;
-                    },
-                    None => {}
-                };
-                if message.last_date<feed.last_updated {
-                    tail = position; 
-                    found = true;
-                }
-            }
-        }
-        (head, tail, found)
-    }
-
-    fn write_new_messages(&self, feed:&Feed, settings:&Settings, extracted:Vec<Result<Message, UnparseableFeed>>)->Feed {
-        let sorted_messages:Vec<&Message> = extracted.iter()
-            .filter_map(|e| e.as_ref().ok())
-            .collect::<Vec<&Message>>();
-        let (head, tail, found) = self.find_new_messages(feed, &sorted_messages);
-        let filtered_messages:&[&Message] = if found {
-            &sorted_messages[head..tail]
-        } else {
-            sorted_messages.as_slice()
-        };
-
-        // And write the messages into IMAP and the feed into JSON
-        let written_messages:Vec<Message> = filtered_messages.iter()
-            .map(|message| self.process_message(feed, settings, message))
-            .inspect(|e| if !settings.do_not_save { e.write_to_imap(feed, settings) } )
-            .collect();
-        let mut last_message:Option<&Message> = written_messages.iter()
-            // ok, there is a small problem here: if at least two elements have the same value - which is the case when feed
-            // elements have no dates - the LAST one is used (which is **not** what we want)
-            // see https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.max_by_key
-            .max_by_key(|e| e.last_date.timestamp());
-        // So, to overcome last problem, if first filtered message has same date than last_message, we replace last by first
-        // As RSS feeds are supposed to put the latest emitted message in first position
-        match last_message {
-            Some(last) => if filtered_messages.len()>1 && filtered_messages[0].last_date==last.last_date {
-                last_message = Some(filtered_messages[0].clone());
-            },
-            _ => {}
-        }
-        
-        let mut returned = feed.clone();
-        if settings.do_not_save {
-            warn!("do_not_save is set. As a consequence, feed won't be updated");
-        } else {
-            match last_message {
-                Some(message) => {
-                    returned.last_updated = message.last_date;
-                    returned.last_message = Some(message.id.clone());
-                },
-                _ => {}
-            }
-        }
-        returned
-    }
-
     fn extract(&self, entry:&EntryType, source:&FeedType) -> Result<Message, UnparseableFeed>;
     fn read_feed_date(&self, source:&FeedType)->NaiveDateTime;
 
     fn extract_messages(&self, source:&FeedType)->Vec<Result<Message,UnparseableFeed>>;
     
-    fn read(&self, feed:&Feed, source:&FeedType, settings:&Settings)->Feed {
+    fn read<'lifetime>(&self, feed:&'lifetime Feed, source:&FeedType)->Vec<Message> {
         debug!("reading feed {}", &feed.url);
         let feed_date = self.read_feed_date(source);
         info!(
@@ -117,18 +28,8 @@ pub trait Reader<EntryType, FeedType> {
         );
         let extracted:Vec<Result<Message, UnparseableFeed>> = self.extract_messages(source);
 
-        let date_errors = extracted.iter()
-            .filter(|e| e.is_err())
-            .fold(0, |acc, _| acc + 1);
-        if date_errors==0 {
-            self.write_new_messages(feed, settings, extracted)
-        } else {
-            warn!("There were problems getting content from feed {}. It may not be complete ...
-            I strongly suggest you enter an issue on GitHub by following this link
-            https://github.com/Riduidel/rrss2imap/issues/new?title=Incorrect%20feed&body=Feed%20at%20url%20{}%20doesn't%20seems%20to%20be%20parseable", 
-            feed.url, feed.url);
-            feed.clone()
-        }
+        let messages:Result<Vec<Message>, UnparseableFeed>  = extracted.into_iter().collect();
+        messages.unwrap_or(vec![])
     }
 }
 
